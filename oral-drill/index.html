@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>一分鐘短講練習</title>
+<style>
+  :root {
+    --bg: #f0f7ff;
+    --card: #ffffff;
+    --primary: #2b6cb0;
+    --primary-dark: #1a4f8b;
+    --accent: #38a169;
+    --warn: #dd6b20;
+    --danger: #e53e3e;
+    --text: #1a202c;
+    --muted: #718096;
+    --border: #bee3f8;
+    --ok-bg: #c6f6d5;
+    --bad-bg: #fed7d7;
+    --miss-bg: #feebc8;
+    --shadow: 0 8px 24px rgba(43, 108, 176, 0.12);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Noto Sans TC", "Noto Sans CJK TC", "PingFang TC",
+                 "Microsoft JhengHei", "Heiti TC", sans-serif;
+    background: linear-gradient(160deg, #e6f2ff 0%, #f7fafc 40%, #e8fff3 100%);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px 14px 40px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  header h1 {
+    font-size: clamp(1.25rem, 4vw, 1.6rem);
+    margin: 0 0 4px;
+    color: var(--primary-dark);
+    letter-spacing: 0.5px;
+  }
+  header .sub {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  .note {
+    background: #fffaf0;
+    border: 1px solid #fbd38d;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: #744210;
+    margin-bottom: 14px;
+  }
+  .note code {
+    background: #fefcbf;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+  }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+  }
+  .dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #a0aec0;
+    background: #edf2f7;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4a5568;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dot.done { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .dot.current { background: var(--primary); border-color: var(--primary); color: #fff; transform: scale(1.15); }
+  .toggles {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle input { width: 18px; height: 18px; }
+  .sentence-box {
+    background: #f7fafc;
+    border-radius: 14px;
+    padding: 18px 12px;
+    min-height: 120px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    gap: 2px 0;
+    border: 2px dashed #cbd5e0;
+  }
+  .cell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    width: 1.7em;
+    min-width: 1.55em;
+  }
+  .cell.punct { width: 1em; min-width: 0.9em; }
+  .py {
+    font-family: "Noto Sans", Arial, sans-serif;
+    font-size: clamp(0.65rem, 2.2vw, 0.8rem);
+    color: #2b6cb0;
+    line-height: 1.2;
+    height: 1.25em;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .hide-py .py { visibility: hidden; }
+  .hz {
+    font-size: clamp(1.35rem, 5vw, 1.85rem);
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .hz.ok { background: var(--ok-bg); border-radius: 4px; }
+  .hz.bad { background: var(--bad-bg); border-radius: 4px; color: var(--danger); }
+  .hz.miss { background: var(--miss-bg); border-radius: 4px; color: var(--warn); outline: 2px dashed var(--warn); }
+  .nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .nav button { flex: 1; }
+  button {
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.08s ease, filter 0.15s;
+    min-height: 48px;
+  }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+  .btn-green { background: var(--accent); color: #fff; }
+  .btn-orange { background: var(--warn); color: #fff; }
+  .btn-red { background: var(--danger); color: #fff; }
+  .btn-gray { background: #e2e8f0; color: #2d3748; }
+  .btn-outline {
+    background: #fff;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 480px) {
+    .actions { grid-template-columns: 1fr; }
+  }
+  .status {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    min-height: 1.4em;
+  }
+  .status.listening { color: var(--danger); font-weight: 700; }
+  .status.recording { color: var(--warn); font-weight: 700; }
+  .feedback {
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .score {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .score-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .score-circle.great { background: var(--accent); }
+  .score-circle.ok { background: #dd6b20; }
+  .score-circle.low { background: var(--danger); }
+  .heard {
+    background: #edf2f7;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 0.95rem;
+    margin: 8px 0;
+    word-break: break-all;
+  }
+  .tips {
+    background: #ebf8ff;
+    border-left: 4px solid var(--primary);
+    padding: 10px 12px;
+    border-radius: 0 10px 10px 0;
+    font-size: 0.92rem;
+  }
+  .tips ul { margin: 6px 0 0; padding-left: 1.2em; }
+  .tips li { margin: 4px 0; }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .legend span::before {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: -1px;
+  }
+  .leg-ok::before { background: var(--ok-bg); border: 1px solid #9ae6b4; }
+  .leg-bad::before { background: var(--bad-bg); border: 1px solid #feb2b2; }
+  .leg-miss::before { background: var(--miss-bg); border: 1px solid #f6ad55; }
+  .full-script details {
+    font-size: 0.9rem;
+  }
+  .full-script summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 6px;
+  }
+  .full-script ol {
+    padding-left: 1.4em;
+    margin: 0;
+  }
+  .full-script li {
+    margin: 6px 0;
+    cursor: pointer;
+  }
+  .full-script li:hover { color: var(--primary); }
+  .pulse {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  footer {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  #gate {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #e6f2ff 0%, #f7fafc 40%, #e8fff3 100%);
+    padding: 20px;
+  }
+  #gate.hidden { display: none; }
+  #gate .box {
+    background: #fff; border-radius: 16px; padding: 28px 24px;
+    box-shadow: 0 8px 24px rgba(43,108,176,.15);
+    border: 1px solid #bee3f8; max-width: 360px; width: 100%; text-align: center;
+  }
+  #gate h2 { margin: 0 0 8px; color: #1a4f8b; font-size: 1.25rem; }
+  #gate p { color: #718096; font-size: 0.9rem; margin: 0 0 16px; }
+  #gate input {
+    width: 100%; padding: 12px 14px; font-size: 1rem;
+    border: 2px solid #bee3f8; border-radius: 10px; margin-bottom: 12px;
+  }
+  #gate input:focus { outline: none; border-color: #2b6cb0; }
+  #gate button {
+    width: 100%; padding: 12px; font-size: 1rem; font-weight: 600;
+    background: #2b6cb0; color: #fff; border: none; border-radius: 10px; cursor: pointer;
+  }
+  #gate button:active { background: #1a4f8b; }
+  #gate .err { color: #e53e3e; font-size: 0.85rem; min-height: 1.2em; margin-top: 8px; }
+  #app-root.locked { visibility: hidden; height: 0; overflow: hidden; }
+
+</style>
+</head>
+<body>
+<div id="gate" role="dialog" aria-label="密碼保護">
+  <div class="box">
+    <h2>短講練習</h2>
+    <p>請輸入密碼後開始練習</p>
+    <form id="gate-form" autocomplete="off">
+      <input id="gate-pw" type="password" placeholder="密碼" autofocus inputmode="text" />
+      <button type="submit">進入</button>
+      <div class="err" id="gate-err" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
+
+<div id="app-root" class="locked">
+
+<div class="wrap">
+  <header>
+    <h1>一分鐘短講練習</h1>
+    <p class="sub">視頻通話 · 逐句跟讀 · 普通話口試</p>
+  </header>
+
+  <div class="note" id="browserNote">
+    <strong>使用提示：</strong>請用 <strong>Chrome</strong> 或 <strong>Edge</strong>。麥克風／語音辨識在 <code>file://</code> 開啟時可能被封鎖。
+    建議在本檔所在資料夾執行：<br/>
+    <code>python3 -m http.server 8765</code><br/>
+    然後打開 <code>http://127.0.0.1:8765/practice.html</code>
+    （或執行同目錄的 <code>start-practice.sh</code>）。
+  </div>
+
+  <div class="card">
+    <div class="progress-row">
+      <span class="badge" id="progressBadge">第 1／10 句</span>
+      <div class="dots" id="dots" aria-label="進度"></div>
+    </div>
+    <div class="toggles">
+      <label class="toggle"><input type="checkbox" id="showPinyin" checked/> 顯示拼音</label>
+      <label class="toggle"><input type="checkbox" id="slowRate" checked/> 範例稍慢（練習用）</label>
+    </div>
+    <div class="sentence-box" id="sentenceBox" aria-live="polite"></div>
+    <div class="legend">
+      <span class="leg-ok">正確</span>
+      <span class="leg-bad">可能讀錯</span>
+      <span class="leg-miss">漏讀／未辨識</span>
+    </div>
+    <div class="nav">
+      <button type="button" class="btn-gray" id="btnPrev">← 上一句</button>
+      <button type="button" class="btn-gray" id="btnNext">下一句 →</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="actions">
+      <button type="button" class="btn-primary" id="btnListen">🔊 聽範例</button>
+      <button type="button" class="btn-orange" id="btnRec">🎙️ 錄音</button>
+      <button type="button" class="btn-green" id="btnRecognize">🎤 開始辨識</button>
+      <button type="button" class="btn-outline" id="btnPlayback" disabled>▶️ 重聽我的</button>
+    </div>
+    <div class="status" id="status">準備好就按「聽範例」或「開始辨識」吧！</div>
+  </div>
+
+  <div class="card feedback" id="feedback">
+    <div class="score">
+      <div class="score-circle great" id="scoreCircle">—</div>
+      <div>
+        <div id="scoreLabel" style="font-weight:800;font-size:1.05rem;">尚未評分</div>
+        <div id="scoreHint" style="color:var(--muted);font-size:0.88rem;"></div>
+      </div>
+    </div>
+    <div><strong>辨識結果：</strong></div>
+    <div class="heard" id="heardText">（尚未辨識）</div>
+    <div class="tips" id="tipsBox">
+      <strong>練習小貼士</strong>
+      <ul id="tipsList"></ul>
+    </div>
+  </div>
+
+  <div class="card full-script">
+    <details>
+      <summary>📖 完整講稿（點句跳轉）</summary>
+      <ol id="fullList"></ol>
+    </details>
+  </div>
+
+  <footer>進度會自動儲存在本機瀏覽器 · 資料不會上傳</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /** @type {{text:string, chars:{c:string,p:string}[], tips:string[]}[]} */
+  var SENTENCES = [];
+var ENCRYPTED_SENTENCES_B64 = "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";
+
+  var STORAGE_KEY = "su_peiqian_speech_practice_v1";
+  var idx = 0;
+  var mediaRecorder = null;
+  var recordedChunks = [];
+  var recordedBlobUrl = null;
+  var isRecording = false;
+  var recognition = null;
+  var isRecognizing = false;
+  var synthUtterance = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var sentenceBox = $("sentenceBox");
+  var progressBadge = $("progressBadge");
+  var dots = $("dots");
+  var statusEl = $("status");
+  var feedback = $("feedback");
+  var showPinyin = $("showPinyin");
+  var slowRate = $("slowRate");
+
+  function loadProgress() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { practiced: {}, lastIndex: 0 };
+      return JSON.parse(raw);
+    } catch (e) {
+      return { practiced: {}, lastIndex: 0 };
+    }
+  }
+  function saveProgress(data) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+  }
+  var progress = loadProgress();
+  if (typeof progress.lastIndex === "number" && progress.lastIndex >= 0 && progress.lastIndex < SENTENCES.length) {
+    idx = progress.lastIndex;
+  }
+
+  function onlyHan(s) {
+    return (s || "").replace(/[^\u4e00-\u9fff]/g, "");
+  }
+
+  /** Simplified → Traditional map for common speech-recognition variants */
+  var S2T = {
+    "视":"視","频":"頻","话":"話","联":"聯","络":"絡","种":"種","绍":"紹",
+    "们":"們","随":"隨","亲":"親","沟":"溝","写":"寫","论":"論","远":"遠",
+    "时":"時","虚":"虛","拟":"擬","转":"轉","换":"換","欢":"歡","这":"這",
+    "还":"還","让":"讓","对":"對","样":"樣","觉":"覺","别":"別","里":"裏",
+    "结":"結","谢":"謝","苏":"蘇","钟":"鍾","后":"後","个":"個","与":"與",
+    "为":"為","来":"來","说":"說","见":"見","面":"面","达":"達","表":"表",
+    "请":"請","楚":"楚","清":"清","能":"能","就":"就","意":"意","思":"思",
+    "沛":"沛","谦":"謙","班":"班","介":"介","方":"方","式":"式","通":"通",
+    "便":"便","但":"但","可":"可","以":"以","地":"地","朋":"朋","好":"好",
+    "友":"友","而":"而","且":"且","用":"用","字":"字","无":"無","相":"相",
+    "隔":"隔","多":"多","都":"都","即":"即","其":"其","次":"次","特":"特",
+    "色":"色","它":"它","有":"有","趣":"趣","功":"功","背":"背","景":"景",
+    "喜":"喜","最":"最","看":"看","到":"到","子":"子","和":"和","像":"像",
+    "真":"真","感":"感","切":"切","束":"束","今":"今","天":"天","想":"想",
+    "向":"向","大":"大","家":"家","一":"一","首":"首","先":"先","十":"十",
+    "分":"分","我":"我","是":"是","五":"五","甲":"甲","的":"的","不":"不",
+    "很":"很","么":"麼"
+  };
+  function toTrad(s) {
+    return (s || "").split("").map(function (ch) { return S2T[ch] || ch; }).join("");
+  }
+
+  function levenshtein(a, b) {
+    var m = a.length, n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    var prev = new Array(n + 1);
+    var cur = new Array(n + 1);
+    var i, j;
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++) {
+      cur[0] = i;
+      for (j = 1; j <= n; j++) {
+        var cost = a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1;
+        cur[j] = Math.min(cur[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+      }
+      var tmp = prev; prev = cur; cur = tmp;
+    }
+    return prev[n];
+  }
+
+  /** Align target chars to recognized string; mark ok / bad / miss */
+  function alignChars(targetHan, heardHan) {
+    var t = targetHan.split("");
+    var h = heardHan.split("");
+    var m = t.length, n = h.length;
+    var dp = [];
+    var i, j;
+    for (i = 0; i <= m; i++) {
+      dp[i] = new Array(n + 1);
+      dp[i][0] = i;
+    }
+    for (j = 0; j <= n; j++) dp[0][j] = j;
+    for (i = 1; i <= m; i++) {
+      for (j = 1; j <= n; j++) {
+        var c = t[i - 1] === h[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + c);
+      }
+    }
+    var marks = new Array(m);
+    i = m; j = n;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && dp[i][j] === dp[i - 1][j - 1] + (t[i - 1] === h[j - 1] ? 0 : 1)) {
+        marks[i - 1] = t[i - 1] === h[j - 1] ? "ok" : "bad";
+        i--; j--;
+      } else if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
+        marks[i - 1] = "miss";
+        i--;
+      } else {
+        j--;
+      }
+    }
+    for (i = 0; i < m; i++) if (!marks[i]) marks[i] = "miss";
+    return marks;
+  }
+
+  function setStatus(msg, cls) {
+    statusEl.textContent = msg;
+    statusEl.className = "status" + (cls ? " " + cls : "");
+  }
+
+  function pickZhVoice() {
+    var voices = speechSynthesis.getVoices() || [];
+    var prefer = ["zh-CN", "zh_CN", "zh-Hans", "cmn-Hans", "Chinese"];
+    var i, v, p;
+    for (p = 0; p < prefer.length; p++) {
+      for (i = 0; i < voices.length; i++) {
+        v = voices[i];
+        if ((v.lang || "").indexOf(prefer[p]) === 0 || (v.name || "").indexOf(prefer[p]) >= 0) {
+          return v;
+        }
+      }
+    }
+    for (i = 0; i < voices.length; i++) {
+      if (/zh|chinese|中文|普通话|國語|国语/i.test((voices[i].lang || "") + voices[i].name)) {
+        return voices[i];
+      }
+    }
+    return null;
+  }
+
+  function renderDots() {
+    dots.innerHTML = "";
+    SENTENCES.forEach(function (_, i) {
+      var d = document.createElement("button");
+      d.type = "button";
+      d.className = "dot" + (i === idx ? " current" : "") + (progress.practiced[i] ? " done" : "");
+      d.textContent = String(i + 1);
+      d.title = "第 " + (i + 1) + " 句";
+      d.addEventListener("click", function () { goTo(i); });
+      dots.appendChild(d);
+    });
+  }
+
+  function renderSentence(marks) {
+    var s = SENTENCES[idx];
+    sentenceBox.innerHTML = "";
+    if (!showPinyin.checked) sentenceBox.classList.add("hide-py");
+    else sentenceBox.classList.remove("hide-py");
+
+    var hanPos = 0;
+    s.chars.forEach(function (ch) {
+      var cell = document.createElement("span");
+      var isPunct = !ch.p;
+      cell.className = "cell" + (isPunct ? " punct" : "");
+      var py = document.createElement("span");
+      py.className = "py";
+      py.textContent = ch.p || "\u00a0";
+      var hz = document.createElement("span");
+      hz.className = "hz";
+      hz.textContent = ch.c;
+      if (marks && !isPunct) {
+        var m = marks[hanPos];
+        if (m) hz.classList.add(m);
+        hanPos++;
+      } else if (!isPunct) {
+        hanPos++;
+      }
+      cell.appendChild(py);
+      cell.appendChild(hz);
+      sentenceBox.appendChild(cell);
+    });
+    progressBadge.textContent = "第 " + (idx + 1) + "／" + SENTENCES.length + " 句";
+    $("btnPrev").disabled = idx === 0;
+    $("btnNext").disabled = idx === SENTENCES.length - 1;
+    renderDots();
+  }
+
+  function goTo(i) {
+    stopSpeak();
+    stopRecognition();
+    idx = i;
+    progress.lastIndex = idx;
+    saveProgress(progress);
+    feedback.classList.remove("show");
+    renderSentence(null);
+    setStatus("準備好就按「聽範例」或「開始辨識」吧！");
+    clearRecordingForNav();
+  }
+
+  function clearRecordingForNav() {
+    /* keep last recording playable across sentences — optional clear */
+  }
+
+  function markPracticed() {
+    progress.practiced[idx] = true;
+    progress.lastIndex = idx;
+    saveProgress(progress);
+    renderDots();
+  }
+
+  function stopSpeak() {
+    try { speechSynthesis.cancel(); } catch (e) {}
+    synthUtterance = null;
+  }
+
+  function listenModel() {
+    if (!window.speechSynthesis) {
+      setStatus("這個瀏覽器不支援語音朗讀。請用 Chrome／Edge。");
+      return;
+    }
+    stopSpeak();
+    stopRecognition();
+    var u = new SpeechSynthesisUtterance(SENTENCES[idx].text);
+    u.lang = "zh-CN";
+    u.rate = slowRate.checked ? 0.88 : 1.0;
+    u.pitch = 1.0;
+    var voice = pickZhVoice();
+    if (voice) u.voice = voice;
+    u.onstart = function () { setStatus("正在播放範例朗讀…"); };
+    u.onend = function () { setStatus("聽完了！可以試著自己讀，或按「開始辨識」。"); };
+    u.onerror = function () { setStatus("朗讀出錯。請再試一次，或檢查系統語音設定。"); };
+    synthUtterance = u;
+    /* Chrome sometimes needs getVoices refresh */
+    var voices = speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) {
+      speechSynthesis.onvoiceschanged = function () {
+        var v2 = pickZhVoice();
+        if (v2) u.voice = v2;
+        speechSynthesis.speak(u);
+      };
+      setTimeout(function () {
+        if (synthUtterance === u) speechSynthesis.speak(u);
+      }, 300);
+    } else {
+      speechSynthesis.speak(u);
+    }
+  }
+
+  function toggleRecord() {
+    if (isRecording) {
+      stopRecord();
+      return;
+    }
+    startRecord();
+  }
+
+  async function startRecord() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setStatus("無法使用麥克風。請用本機伺服器開啟本頁（見上方提示）。");
+      return;
+    }
+    stopRecognition();
+    stopSpeak();
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recordedChunks = [];
+      var mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : (MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "");
+      mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = function (e) {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+      mediaRecorder.onstop = function () {
+        stream.getTracks().forEach(function (t) { t.stop(); });
+        if (recordedBlobUrl) URL.revokeObjectURL(recordedBlobUrl);
+        var blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+        recordedBlobUrl = URL.createObjectURL(blob);
+        $("btnPlayback").disabled = false;
+        setStatus("錄音完成！可以按「重聽我的」，或再按「開始辨識」。");
+        markPracticed();
+      };
+      mediaRecorder.start();
+      isRecording = true;
+      $("btnRec").textContent = "⏹️ 停止";
+      $("btnRec").className = "btn-red";
+      setStatus("錄音中…讀完後按「停止」。", "recording pulse");
+      statusEl.classList.add("pulse");
+    } catch (err) {
+      setStatus("無法開啟麥克風：" + (err && err.message ? err.message : "請允許權限，並用 http://127.0.0.1 開啟。"));
+    }
+  }
+
+  function stopRecord() {
+    if (mediaRecorder && isRecording) {
+      try { mediaRecorder.stop(); } catch (e) {}
+    }
+    isRecording = false;
+    $("btnRec").textContent = "🎙️ 錄音";
+    $("btnRec").className = "btn-orange";
+    statusEl.classList.remove("pulse");
+  }
+
+  function playbackSelf() {
+    if (!recordedBlobUrl) {
+      setStatus("還沒有錄音。請先按「錄音」。");
+      return;
+    }
+    stopSpeak();
+    var audio = new Audio(recordedBlobUrl);
+    setStatus("正在播放你的錄音…");
+    audio.onended = function () { setStatus("播完了！可以對照範例再練一次。"); };
+    audio.play().catch(function () { setStatus("播放失敗，請再錄一次。"); });
+  }
+
+  function getRecognitionCtor() {
+    return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  }
+
+  function stopRecognition() {
+    if (recognition) {
+      try { recognition.onresult = null; recognition.onerror = null; recognition.onend = null; recognition.stop(); } catch (e) {}
+      recognition = null;
+    }
+    isRecognizing = false;
+    $("btnRecognize").textContent = "🎤 開始辨識";
+    $("btnRecognize").className = "btn-green";
+    statusEl.classList.remove("pulse");
+  }
+
+  function startRecognition() {
+    var Ctor = getRecognitionCtor();
+    if (!Ctor) {
+      setStatus("這個瀏覽器不支援語音辨識。請用電腦版 Chrome／Edge。");
+      return;
+    }
+    if (isRecognizing) {
+      stopRecognition();
+      setStatus("已停止辨識。");
+      return;
+    }
+    stopSpeak();
+    if (isRecording) stopRecord();
+
+    recognition = new Ctor();
+    recognition.lang = "zh-CN";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 3;
+
+    var finalText = "";
+    isRecognizing = true;
+    $("btnRecognize").textContent = "⏹️ 停止辨識";
+    $("btnRecognize").className = "btn-red";
+    setStatus("請清楚朗讀這一句…（說完會自動停止）", "listening");
+    statusEl.classList.add("pulse");
+
+    recognition.onresult = function (event) {
+      var interim = "";
+      var i;
+      for (i = event.resultIndex; i < event.results.length; i++) {
+        var t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += t;
+        else interim += t;
+      }
+      if (interim) setStatus("聽到： " + interim, "listening");
+      if (finalText) {
+        applyFeedback(finalText);
+      }
+    };
+    recognition.onerror = function (event) {
+      var code = event.error || "";
+      if (code === "not-allowed") {
+        setStatus("麥克風被拒絕。請允許權限，並用本機伺服器（http://127.0.0.1）開啟。");
+      } else if (code === "no-speech") {
+        setStatus("沒有聽到聲音，請靠近麥克風再試。");
+      } else if (code === "network") {
+        setStatus("語音辨識需要網路（Chrome 會連到雲端）。請檢查網絡後再試。");
+      } else {
+        setStatus("辨識出錯：" + code);
+      }
+      stopRecognition();
+    };
+    recognition.onend = function () {
+      var was = isRecognizing;
+      isRecognizing = false;
+      $("btnRecognize").textContent = "🎤 開始辨識";
+      $("btnRecognize").className = "btn-green";
+      statusEl.classList.remove("pulse");
+      if (finalText) {
+        applyFeedback(finalText);
+        setStatus("辨識完成！看看下面的分數和小貼士。");
+      } else if (was) {
+        setStatus("沒有辨識到內容。請再按「開始辨識」，大聲清楚一點。");
+      }
+      recognition = null;
+    };
+    try {
+      recognition.start();
+    } catch (e) {
+      setStatus("無法啟動辨識，請稍候再試。");
+      stopRecognition();
+    }
+  }
+
+  function applyFeedback(rawHeard) {
+    var target = onlyHan(SENTENCES[idx].text);
+    var heard = onlyHan(toTrad(rawHeard));
+    var dist = levenshtein(target, heard);
+    var score = target.length === 0 ? 0 : Math.max(0, Math.round((1 - dist / target.length) * 100));
+    var marks = alignChars(target, heard);
+
+    renderSentence(marks);
+    feedback.classList.add("show");
+    $("heardText").textContent = rawHeard || "（空白）";
+
+    var circle = $("scoreCircle");
+    var label = $("scoreLabel");
+    var hint = $("scoreHint");
+    circle.textContent = score + "%";
+    circle.className = "score-circle " + (score >= 85 ? "great" : score >= 60 ? "ok" : "low");
+    if (score >= 85) {
+      label.textContent = "很棒！幾乎滿分";
+      hint.textContent = "可以進入下一句，或再練一次更穩。";
+    } else if (score >= 60) {
+      label.textContent = "不錯，再練多一次會更好";
+      hint.textContent = "橘色／紅色字多讀幾遍，對照拼音。";
+    } else {
+      label.textContent = "再試一次，你做得到！";
+      hint.textContent = "先按「聽範例」，跟讀兩次再辨識。";
+    }
+
+    var tips = SENTENCES[idx].tips.slice();
+    /* Dynamic tips from mismatches */
+    var hard = ["視頻", "虛擬", "親切", "聯絡", "溝通", "隨時隨地"];
+    hard.forEach(function (w) {
+      var wh = onlyHan(w);
+      if (target.indexOf(wh) >= 0 && heard.indexOf(wh) < 0) {
+        tips.unshift("好像少了或讀得不清楚：「" + w + "」——慢慢再讀一次。");
+      }
+    });
+    if (score < 100 && heard.length < target.length * 0.6) {
+      tips.unshift("句子好像讀得不完整，試著一次讀完整句，不要太快。");
+    }
+    if (score >= 90) {
+      tips.unshift("節奏很好！記得保持微笑，目光看向聽眾。");
+    }
+
+    var ul = $("tipsList");
+    ul.innerHTML = "";
+    tips.slice(0, 4).forEach(function (t) {
+      var li = document.createElement("li");
+      li.textContent = t;
+      ul.appendChild(li);
+    });
+
+    markPracticed();
+  }
+
+  function buildFullList() {
+    var ol = $("fullList");
+    ol.innerHTML = "";
+    SENTENCES.forEach(function (s, i) {
+      var li = document.createElement("li");
+      li.textContent = s.text;
+      li.addEventListener("click", function () { goTo(i); });
+      ol.appendChild(li);
+    });
+  }
+
+  /* Secure-context hint */
+  if (!window.isSecureContext && location.protocol === "file:") {
+    $("browserNote").style.borderColor = "#e53e3e";
+  } else if (window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    $("browserNote").innerHTML = "<strong>狀態：</strong>本頁已在本機伺服器／安全環境開啟，麥克風與語音功能應可正常使用。請用 Chrome 或 Edge。語音辨識通常需要網絡連線。";
+  }
+
+  showPinyin.addEventListener("change", function () { renderSentence(null); });
+  $("btnPrev").addEventListener("click", function () { if (idx > 0) goTo(idx - 1); });
+  $("btnNext").addEventListener("click", function () { if (idx < SENTENCES.length - 1) goTo(idx + 1); });
+  $("btnListen").addEventListener("click", listenModel);
+  $("btnRec").addEventListener("click", toggleRecord);
+  $("btnPlayback").addEventListener("click", playbackSelf);
+  $("btnRecognize").addEventListener("click", startRecognition);
+
+  if (window.speechSynthesis) {
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = function () { speechSynthesis.getVoices(); };
+  }
+
+  buildFullList();
+  renderSentence(null);
+  setStatus("準備好就按「聽範例」或「開始辨識」吧！");
+})();
+</script>
+
+</div>
+
+<script>
+(function () {
+  const PASS_SHA256 = "19ab0de38e8ceca93aa96a02631db273cb735a07b6347211eb7e1e31fb8c25c9";
+  const KEY = "su_peiqian_speech_unlocked_v1";
+  const gate = document.getElementById("gate");
+  const app = document.getElementById("app-root");
+  const form = document.getElementById("gate-form");
+  const input = document.getElementById("gate-pw");
+  const err = document.getElementById("gate-err");
+
+  
+  async function decryptSentences(password) {
+    const raw = Uint8Array.from(atob(ENCRYPTED_SENTENCES_B64), c => c.charCodeAt(0));
+    const nonce = raw.slice(0, 12);
+    const data = raw.slice(12);
+    const keyBytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
+    const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, data);
+    const text = new TextDecoder().decode(plain);
+    SENTENCES = (0, eval)("(" + text + ")");
+  }
+
+  async function sha256Hex(text) {
+    const data = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function unlock() {
+    try { sessionStorage.setItem(KEY, "1"); if (window.__gatePw) sessionStorage.setItem(KEY+"_pw", window.__gatePw); } catch (e) {}
+    gate.classList.add("hidden");
+    if (app) app.classList.remove("locked");
+  }
+
+  function isUnlocked() {
+    try { return sessionStorage.getItem(KEY) === "1"; } catch (e) { return false; }
+  }
+
+  if (isUnlocked()) {
+    (async () => {
+      try {
+        const pw = sessionStorage.getItem(KEY+"_pw");
+        if (!pw) { try { sessionStorage.removeItem(KEY); } catch(e){} return; }
+        await decryptSentences(pw);
+        if (typeof initApp === "function") initApp();
+        else if (typeof render === "function") render();
+        unlock();
+      } catch (e) {
+        try { sessionStorage.removeItem(KEY); sessionStorage.removeItem(KEY+"_pw"); } catch (e2) {}
+      }
+    })();
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    err.textContent = "";
+    const val = (input.value || "").trim();
+    window.__gatePw = val;
+    if (!val) { err.textContent = "請輸入密碼"; return; }
+    try {
+      const h = await sha256Hex(val);
+      if (h === PASS_SHA256) {
+        try { await decryptSentences(val); if (typeof initApp === "function") initApp(); else if (typeof render === "function") render(); unlock(); }
+        catch (ex) { err.textContent = "解鎖失敗，請重試"; console.error(ex); }
+      }
+      else { err.textContent = "密碼不正確"; input.select(); }
+    } catch (ex) {
+      err.textContent = "此瀏覽器不支援驗證，請用 Chrome 或 Edge";
+    }
+  });
+})();
+</script>
+</body>
+</html>

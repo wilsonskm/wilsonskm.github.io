@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>古詩背誦練習</title>
+<style>
+:root {
+  --bg:#f3f7ff; --card:#fff; --primary:#2b6cb0; --primary-dark:#1a4f8b;
+  --accent:#38a169; --warn:#dd6b20; --danger:#e53e3e; --text:#1a202c;
+  --muted:#718096; --border:#bee3f8; --shadow:0 8px 24px rgba(43,108,176,.12);
+  --radius:16px; --ok:#c6f6d5; --bad:#fed7d7; --miss:#feebc8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
+  background:linear-gradient(160deg,#e6f2ff 0%,#f7fafc 45%,#e8fff3 100%);
+  color:var(--text); min-height:100vh; line-height:1.55;
+}
+.wrap{max-width:720px;margin:0 auto;padding:14px 12px 48px}
+header{text-align:center;margin-bottom:10px}
+header h1{font-size:clamp(1.2rem,4.2vw,1.55rem);margin:0 0 4px;color:var(--primary-dark)}
+header .sub{color:var(--muted);font-size:.88rem;margin:0}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:14px;margin-bottom:12px}
+.note{background:#fffaf0;border:1px solid #fbd38d;border-radius:12px;padding:10px 12px;font-size:.8rem;color:#744210;margin-bottom:12px}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.tab{
+  border:2px solid var(--border);background:#fff;border-radius:12px;padding:10px 4px;
+  font-size:.78rem;font-weight:700;color:var(--primary-dark);cursor:pointer;min-height:48px;
+}
+.tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.mode{display:none}.mode.active{display:block}
+.btn,button.btn{
+  appearance:none;border:none;border-radius:12px;padding:12px 14px;font-size:1rem;font-weight:700;
+  cursor:pointer;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-green{background:var(--accent);color:#fff}
+.btn-orange{background:var(--warn);color:#fff}
+.btn-gray{background:#edf2f7;color:#2d3748}
+.btn-outline{background:#fff;border:2px solid var(--primary);color:var(--primary)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.toggles{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0;font-size:.9rem}
+.toggle{display:flex;align-items:center;gap:6px}
+.line-box{
+  background:#f7fafc;border:1px dashed #90cdf4;border-radius:14px;padding:16px 12px;
+  text-align:center;min-height:110px;font-size:1.35rem;letter-spacing:.04em;
+}
+.char{display:inline-flex;flex-direction:column;align-items:center;margin:0 2px 8px;min-width:1.4em;vertical-align:top}
+.char .py{font-size:.62rem;color:var(--muted);line-height:1;min-height:.9em}
+.char .hz{font-size:1.35rem;line-height:1.2}
+.char.ok .hz{background:var(--ok);border-radius:4px;padding:0 2px}
+.char.bad .hz{background:var(--bad);border-radius:4px;padding:0 2px}
+.char.miss .hz{background:var(--miss);border-radius:4px;padding:0 2px}
+.char.blank .hz{color:transparent;border-bottom:2px solid var(--primary);min-width:1.1em}
+.char.blank.revealed .hz{color:var(--text);border-bottom-color:transparent}
+.badge{background:var(--primary);color:#fff;font-weight:700;padding:4px 12px;border-radius:999px;font-size:.9rem}
+.nav{display:flex;justify-content:space-between;gap:8px;margin-top:10px}
+.status{margin-top:10px;padding:10px;border-radius:10px;background:#ebf8ff;color:#2a4365;font-size:.92rem;min-height:1.4em}
+.score-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+.score-circle{
+  width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:1.1rem;background:#edf2f7
+}
+.score-circle.great{background:#c6f6d5;color:#22543d}
+.score-circle.ok{background:#fefcbf;color:#744210}
+.score-circle.poor{background:#fed7d7;color:#822727}
+.tips{background:#f0fff4;border:1px solid #9ae6b4;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:.88rem}
+.tips ul{margin:6px 0 0;padding-left:1.1em}
+.full-poem .row{padding:8px 0;border-bottom:1px solid #e2e8f0;cursor:pointer}
+.blank-cell{
+  display:inline-block;min-width:2rem;min-height:2.2rem;margin:3px;padding:4px 6px;
+  border:2px solid #90cdf4;border-radius:8px;text-align:center;font-size:1.2rem;background:#fff;vertical-align:middle
+}
+.blank-cell.filled{border-color:var(--accent);background:#f0fff4}
+.blank-cell.wrong{border-color:var(--danger);background:#fff5f5}
+.choice-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.choice{
+  min-width:48px;min-height:48px;border-radius:12px;border:2px solid var(--border);
+  background:#fff;font-size:1.25rem;font-weight:700;cursor:pointer
+}
+.timer{font-variant-numeric:tabular-nums;font-size:1.4rem;font-weight:800;color:var(--primary-dark);text-align:center}
+.progress-bar{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.progress-bar > span{display:block;height:100%;background:linear-gradient(90deg,#4299e1,#38a169);width:0%;transition:width .25s}
+footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:8px}
+#gate{
+  position:fixed;inset:0;background:rgba(26,54,93,.55);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;z-index:50;padding:16px
+}
+#gate.hidden{display:none}
+#gate .box{background:#fff;border-radius:18px;padding:22px 18px;width:min(360px,100%);box-shadow:var(--shadow);text-align:center}
+#gate h2{margin:0 0 6px;color:var(--primary-dark)}
+#gate p{color:var(--muted);font-size:.9rem;margin:0 0 14px}
+#gate input{
+  width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:1.05rem;margin-bottom:10px
+}
+#gate button{width:100%;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px;font-size:1.05rem;font-weight:700}
+#gate .err{color:var(--danger);font-size:.85rem;min-height:1.2em;margin-top:8px}
+#app-root.locked{visibility:hidden;height:0;overflow:hidden}
+audio{width:100%;margin-top:8px}
+@media (max-width:420px){
+  .tabs{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+<div id="gate" role="dialog" aria-label="密碼保護">
+  <div class="box">
+    <h2>古詩背誦</h2>
+    <p>請輸入密碼後開始練習</p>
+    <form id="gate-form" autocomplete="off">
+      <input id="gate-pw" type="password" placeholder="密碼" autofocus inputmode="text" />
+      <button type="submit">進入</button>
+      <div class="err" id="gate-err" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
+
+<div id="app-root" class="locked">
+<div class="wrap">
+  <header>
+    <h1>古詩背誦練習</h1>
+    <p class="sub" id="subMeta">普通話 · 背誦古詩</p>
+  </header>
+
+  <div class="note" id="browserNote">
+    <strong>使用提示：</strong>請用手機 <strong>Chrome</strong>。語音辨識需要網絡；錄音／麥克風只在本機使用，不會上傳。
+  </div>
+
+  <div class="card" style="padding:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <span class="badge" id="progressBadge">進度 0%</span>
+      <span style="font-size:.82rem;color:var(--muted)" id="progressLabel">尚未開始</span>
+    </div>
+    <div class="progress-bar"><span id="progressFill"></span></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab active" data-mode="listen">聽範例</button>
+    <button type="button" class="tab" data-mode="line">逐句練習</button>
+    <button type="button" class="tab" data-mode="hide">遮字背誦</button>
+    <button type="button" class="tab" data-mode="fill">填空默寫</button>
+    <button type="button" class="tab" data-mode="full">全文背誦</button>
+  </div>
+
+  <section class="mode active" id="mode-listen">
+    <div class="card">
+      <div style="text-align:center;margin-bottom:8px">
+        <div style="font-size:1.5rem;font-weight:800" id="poemTitle"></div>
+        <div style="color:var(--muted)" id="poemAuthor"></div>
+      </div>
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" id="listenPinyin" checked/> 顯示拼音</label>
+        <label class="toggle"><input type="checkbox" id="listenSlow" checked/> 稍慢朗讀</label>
+      </div>
+      <div class="line-box" id="listenBox" style="text-align:left"></div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" id="btnListenAll">🔊 朗讀全文</button>
+        <button type="button" class="btn btn-gray" id="btnStopListen">停止</button>
+      </div>
+      <p style="font-size:.82rem;color:var(--muted);margin:10px 0 0">亦可播放預錄範例：</p>
+      <audio id="sampleAudio" controls preload="none" src="sample.mp3"></audio>
+    </div>
+    <div class="card full-poem" id="listenLines"></div>
+  </section>
+
+  <section class="mode" id="mode-line">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="badge" id="lineBadge">第 1／6 句</span>
+        <div class="toggles" style="margin:0">
+          <label class="toggle"><input type="checkbox" id="linePinyin" checked/> 拼音</label>
+          <label class="toggle"><input type="checkbox" id="lineSlow" checked/> 稍慢</label>
+        </div>
+      </div>
+      <div class="line-box" id="lineBox" aria-live="polite"></div>
+      <div class="nav">
+        <button type="button" class="btn btn-gray" id="btnLinePrev">← 上一句</button>
+        <button type="button" class="btn btn-gray" id="btnLineNext">下一句 →</button>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" id="btnLineListen">🔊 聽這句</button>
+        <button type="button" class="btn btn-orange" id="btnLineRec">🎙️ 錄音</button>
+        <button type="button" class="btn btn-green" id="btnLineRecog">🎤 開始辨識</button>
+        <button type="button" class="btn btn-outline" id="btnLinePlay" disabled>▶️ 重聽我的</button>
+      </div>
+      <div class="status" id="lineStatus">準備好就按「聽這句」或「開始辨識」。</div>
+      <div class="score-row">
+        <div class="score-circle" id="lineScore">—</div>
+        <div>
+          <div id="lineScoreLabel" style="font-weight:800">尚未評分</div>
+          <div id="lineHeard" style="font-size:.88rem;color:var(--muted)">辨識結果會顯示在這裡</div>
+        </div>
+      </div>
+      <div class="tips"><strong>練習小貼士</strong><ul id="lineTips"></ul></div>
+    </div>
+  </section>
+
+  <section class="mode" id="mode-hide">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <span class="badge" id="hideBadge">第 1／6 句</span>
+        <select id="hideLevel" style="padding:8px 10px;border-radius:10px;border:2px solid var(--border);font-size:.9rem;min-height:44px">
+          <option value="first3">只顯示前 3 字</option>
+          <option value="odd">遮偶數字</option>
+          <option value="even">遮奇數字</option>
+          <option value="punct">只留標點</option>
+          <option value="all">全遮（點字揭曉）</option>
+        </select>
+      </div>
+      <p style="font-size:.85rem;color:var(--muted);margin:8px 0">點空白字可揭曉；再點可再遮。</p>
+      <div class="line-box" id="hideBox"></div>
+      <div class="nav">
+        <button type="button" class="btn btn-gray" id="btnHidePrev">← 上一句</button>
+        <button type="button" class="btn btn-gray" id="btnHideNext">下一句 →</button>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" id="btnHideListen">🔊 聽這句</button>
+        <button type="button" class="btn btn-green" id="btnHideReveal">全部揭曉</button>
+        <button type="button" class="btn btn-orange" id="btnHideShuffle">🎲 換難度</button>
+      </div>
+      <div class="status" id="hideStatus">先遮字試背，再揭曉核對。</div>
+    </div>
+  </section>
+
+  <section class="mode" id="mode-fill">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="badge" id="fillBadge">第 1／6 句</span>
+        <label class="toggle"><input type="checkbox" id="fillPick" checked/> 選字模式</label>
+      </div>
+      <div id="fillPrompt" style="margin:10px 0;font-size:1.25rem;line-height:2.1;text-align:center"></div>
+      <div id="fillTypeWrap" style="display:none">
+        <input id="fillInput" type="text" inputmode="text" placeholder="在此輸入缺少的字（可連續）"
+          style="width:100%;padding:12px;border:2px solid var(--border);border-radius:12px;font-size:1.1rem"/>
+      </div>
+      <div class="choice-grid" id="fillChoices"></div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-green" id="btnFillCheck">✓ 核對</button>
+        <button type="button" class="btn btn-gray" id="btnFillReset">重設</button>
+        <button type="button" class="btn btn-primary" id="btnFillListen">🔊 聽這句</button>
+      </div>
+      <div class="nav">
+        <button type="button" class="btn btn-gray" id="btnFillPrev">← 上一句</button>
+        <button type="button" class="btn btn-gray" id="btnFillNext">下一句 →</button>
+      </div>
+      <div class="status" id="fillStatus">選字或輸入缺字，再按核對。</div>
+    </div>
+  </section>
+
+  <section class="mode" id="mode-full">
+    <div class="card">
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" id="fullTimer"/> 計時</label>
+        <label class="toggle"><input type="checkbox" id="fullShow" checked/> 顯示全文（練習用）</label>
+      </div>
+      <div class="timer" id="fullTimerDisp">00:00</div>
+      <div class="line-box" id="fullBox" style="text-align:left;font-size:1.15rem"></div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-orange" id="btnFullRec">🎙️ 開始錄音背誦</button>
+        <button type="button" class="btn btn-green" id="btnFullRecog">🎤 語音辨識對照</button>
+        <button type="button" class="btn btn-outline" id="btnFullPlay" disabled>▶️ 重聽</button>
+        <button type="button" class="btn btn-gray" id="btnFullReset">重設計時</button>
+      </div>
+      <div class="status" id="fullStatus">關掉「顯示全文」可挑戰純背誦；計時可選。</div>
+      <div class="score-row">
+        <div class="score-circle" id="fullScore">—</div>
+        <div>
+          <div id="fullScoreLabel" style="font-weight:800">尚未評分</div>
+          <div id="fullHeard" style="font-size:.88rem;color:var(--muted)"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>進度儲存在本機瀏覽器 · 資料不會上傳 · noindex</footer>
+</div>
+</div>
+
+<script>
+window.ENCRYPTED_SENTENCES_B64 = "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";
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var POEM = null;
+  var STORAGE_KEY = "poem_drill_mingrige_v1";
+  var lineIdx = 0, hideIdx = 0, fillIdx = 0;
+  var mediaRecorder = null, recordedChunks = [], recordedUrl = null, isRecording = false;
+  var recognition = null, isRecognizing = false;
+  var timerId = null, timerStarted = 0, timerElapsed = 0;
+  var fillTargets = [], fillAnswers = {};
+  var progress = loadProgress();
+  var bound = false;
+
+  function el(id) { return document.getElementById(id); }
+
+  function loadProgress() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { modes: {}, lines: {}, bestFull: 0 };
+      return JSON.parse(raw);
+    } catch (e) { return { modes: {}, lines: {}, bestFull: 0 }; }
+  }
+  function saveProgress() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) {}
+    updateProgressUI();
+  }
+  function markMode(mode) {
+    progress.modes[mode] = (progress.modes[mode] || 0) + 1;
+    saveProgress();
+  }
+  function markLine(i, score) {
+    var cur = progress.lines[i] || 0;
+    if (score > cur) progress.lines[i] = score;
+    saveProgress();
+  }
+  function updateProgressUI() {
+    if (!POEM) return;
+    var n = POEM.lines.length;
+    var done = 0;
+    for (var i = 0; i < n; i++) if ((progress.lines[i] || 0) >= 70) done++;
+    var modeBonus = Math.min(20, Object.keys(progress.modes || {}).length * 4);
+    var pct = Math.min(100, Math.round((done / n) * 80 + modeBonus));
+    el("progressBadge").textContent = "進度 " + pct + "%";
+    el("progressFill").style.width = pct + "%";
+    el("progressLabel").textContent = "已練熟 " + done + "／" + n + " 句" + (progress.bestFull ? (" · 全文最佳 " + progress.bestFull + "%") : "");
+  }
+
+  function onlyHan(s) { return (s || "").replace(/[^\u4e00-\u9fff]/g, ""); }
+  function isPunct(c) { return !c || /[，。！？、《》；：、“”‘’\s]/.test(c); }
+
+  function renderChars(chars, opt) {
+    opt = opt || {};
+    var showPy = !!opt.showPinyin;
+    var marks = opt.marks || null;
+    var blankFn = opt.blankFn || null;
+    var html = "";
+    chars.forEach(function (ch, i) {
+      var blank = blankFn ? blankFn(ch, i) : false;
+      var cls = "char" + (blank ? " blank" : "") + (marks && marks[i] ? " " + marks[i] : "");
+      html += '<span class="' + cls + '" data-i="' + i + '">' +
+        '<span class="py">' + (showPy && ch.p ? ch.p : "") + "</span>" +
+        '<span class="hz">' + ch.c + "</span></span>";
+    });
+    return html;
+  }
+
+  function pickVoice() {
+    if (!window.speechSynthesis) return null;
+    var voices = speechSynthesis.getVoices() || [];
+    var prefer = voices.filter(function (v) {
+      return /zh(-|_)?CN|Chinese|普通话|中文/.test(v.lang + v.name);
+    });
+    return prefer[0] || voices.find(function (v) { return /^zh/i.test(v.lang); }) || null;
+  }
+  function speak(text, slow) {
+    if (!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN";
+    var v = pickVoice();
+    if (v) u.voice = v;
+    u.rate = slow ? 0.78 : 0.95;
+    speechSynthesis.speak(u);
+  }
+  function stopSpeak() {
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    var a = el("sampleAudio");
+    if (a) { a.pause(); a.currentTime = 0; }
+  }
+  function getSR() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
+
+  function compareHan(target, heard) {
+    var t = onlyHan(target).split("");
+    var h = onlyHan(heard).split("");
+    var marks = [];
+    var hi = 0, ok = 0, used = {};
+    for (var i = 0; i < t.length; i++) {
+      var found = -1;
+      for (var j = hi; j < h.length && j < hi + 3; j++) {
+        if (!used[j] && h[j] === t[i]) { found = j; break; }
+      }
+      if (found < 0) {
+        for (var k = 0; k < h.length; k++) {
+          if (!used[k] && h[k] === t[i]) { found = k; break; }
+        }
+      }
+      if (found >= 0) { used[found] = true; marks.push("ok"); ok++; hi = found + 1; }
+      else marks.push("miss");
+    }
+    var score = t.length ? Math.round((ok / t.length) * 100) : 0;
+    return { score: score, marks: marks, ok: ok, total: t.length };
+  }
+  function scoreClass(s) { return s >= 85 ? "great" : s >= 60 ? "ok" : "poor"; }
+
+  function switchMode(name) {
+    document.querySelectorAll(".tab").forEach(function (t) {
+      t.classList.toggle("active", t.getAttribute("data-mode") === name);
+    });
+    document.querySelectorAll(".mode").forEach(function (m) {
+      m.classList.toggle("active", m.id === "mode-" + name);
+    });
+    markMode(name);
+    if (name === "listen") renderListen();
+    if (name === "line") renderLine();
+    if (name === "hide") renderHide();
+    if (name === "fill") renderFill();
+    if (name === "full") renderFull();
+  }
+
+  function renderListen() {
+    el("poemTitle").textContent = "《" + POEM.title + "》";
+    el("poemAuthor").textContent = POEM.author + "（" + (POEM.authorPinyin || "") + "）";
+    var showPy = el("listenPinyin").checked;
+    var box = el("listenBox");
+    box.innerHTML = "";
+    POEM.lines.forEach(function (line) {
+      var div = document.createElement("div");
+      div.style.marginBottom = "10px";
+      div.innerHTML = renderChars(line.chars, { showPinyin: showPy });
+      box.appendChild(div);
+    });
+    var list = el("listenLines");
+    list.innerHTML = "<strong>逐句點擊朗讀</strong>";
+    POEM.lines.forEach(function (line, i) {
+      var row = document.createElement("div");
+      row.className = "row";
+      row.textContent = (i + 1) + ". " + line.text;
+      row.addEventListener("click", function () { speak(line.text, el("listenSlow").checked); });
+      list.appendChild(row);
+    });
+  }
+
+  function renderLine() {
+    var line = POEM.lines[lineIdx];
+    el("lineBadge").textContent = "第 " + (lineIdx + 1) + "／" + POEM.lines.length + " 句";
+    el("lineBox").innerHTML = renderChars(line.chars, { showPinyin: el("linePinyin").checked });
+    el("btnLinePrev").disabled = lineIdx === 0;
+    el("btnLineNext").disabled = lineIdx === POEM.lines.length - 1;
+    var ul = el("lineTips");
+    ul.innerHTML = "";
+    (line.tips || []).forEach(function (t) {
+      var li = document.createElement("li");
+      li.textContent = t;
+      ul.appendChild(li);
+    });
+  }
+
+  function hideBlankFn(level) {
+    return function (ch, i) {
+      if (isPunct(ch.c)) return false;
+      var ord = 0, j;
+      for (j = 0; j <= i; j++) {
+        if (!isPunct(POEM.lines[hideIdx].chars[j].c)) {
+          if (j === i) break;
+          ord++;
+        }
+      }
+      if (level === "first3") return ord >= 3;
+      if (level === "odd") return ord % 2 === 1;
+      if (level === "even") return ord % 2 === 0;
+      if (level === "punct" || level === "all") return true;
+      return false;
+    };
+  }
+
+  function renderHide() {
+    var line = POEM.lines[hideIdx];
+    el("hideBadge").textContent = "第 " + (hideIdx + 1) + "／" + POEM.lines.length + " 句";
+    var level = el("hideLevel").value;
+    el("hideBox").innerHTML = renderChars(line.chars, { showPinyin: false, blankFn: hideBlankFn(level) });
+    el("hideBox").querySelectorAll(".char.blank").forEach(function (node) {
+      node.addEventListener("click", function () { node.classList.toggle("revealed"); });
+    });
+    el("btnHidePrev").disabled = hideIdx === 0;
+    el("btnHideNext").disabled = hideIdx === POEM.lines.length - 1;
+  }
+
+  function buildFillState(i) {
+    var line = POEM.lines[i];
+    var idxs = [];
+    line.chars.forEach(function (ch, idx) { if (!isPunct(ch.c)) idxs.push(idx); });
+    var nBlank = Math.max(2, Math.round(idxs.length * 0.4));
+    var shuffled = idxs.slice().sort(function () { return Math.random() - 0.5; });
+    var blanks = shuffled.slice(0, nBlank).sort(function (a, b) { return a - b; });
+    fillTargets = blanks;
+    fillAnswers = {};
+    blanks.forEach(function (bi) { fillAnswers[bi] = ""; });
+  }
+
+  function renderFill() {
+    var line = POEM.lines[fillIdx];
+    el("fillBadge").textContent = "第 " + (fillIdx + 1) + "／" + POEM.lines.length + " 句";
+    if (!fillTargets.length) buildFillState(fillIdx);
+    var pick = el("fillPick").checked;
+    el("fillTypeWrap").style.display = pick ? "none" : "block";
+    var html = "";
+    line.chars.forEach(function (ch, idx) {
+      if (fillAnswers.hasOwnProperty(idx)) {
+        var val = fillAnswers[idx] || "";
+        html += '<span class="blank-cell' + (val ? " filled" : "") + '" data-bi="' + idx + '">' + (val || "　") + "</span>";
+      } else {
+        html += '<span style="margin:0 2px;font-size:1.25rem">' + ch.c + "</span>";
+      }
+    });
+    el("fillPrompt").innerHTML = html;
+    var choices = el("fillChoices");
+    choices.innerHTML = "";
+    if (pick) {
+      var pool = fillTargets.map(function (bi) { return line.chars[bi].c; });
+      var extra = [];
+      POEM.lines.forEach(function (L) {
+        L.chars.forEach(function (ch) {
+          if (!isPunct(ch.c) && pool.indexOf(ch.c) < 0 && extra.indexOf(ch.c) < 0) extra.push(ch.c);
+        });
+      });
+      extra = extra.sort(function () { return Math.random() - 0.5; }).slice(0, 6);
+      var all = pool.concat(extra).sort(function () { return Math.random() - 0.5; });
+      var seen = {};
+      all.forEach(function (c) {
+        if (seen[c]) return;
+        seen[c] = 1;
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "choice";
+        b.textContent = c;
+        b.addEventListener("click", function () {
+          for (var k = 0; k < fillTargets.length; k++) {
+            var bi = fillTargets[k];
+            if (!fillAnswers[bi]) { fillAnswers[bi] = c; renderFill(); return; }
+          }
+        });
+        choices.appendChild(b);
+      });
+    }
+    el("btnFillPrev").disabled = fillIdx === 0;
+    el("btnFillNext").disabled = fillIdx === POEM.lines.length - 1;
+  }
+
+  function renderFull() {
+    var show = el("fullShow").checked;
+    if (!show) {
+      el("fullBox").innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">全文已隱藏 — 憑記憶背誦吧！</div>';
+      return;
+    }
+    var html = "<div style='font-weight:800;text-align:center;margin-bottom:8px'>《" + POEM.title + "》 " + POEM.author + "</div>";
+    POEM.lines.forEach(function (line, i) {
+      html += "<div style='margin:6px 0'>" + (i + 1) + ". " + line.text + "</div>";
+    });
+    el("fullBox").innerHTML = html;
+  }
+
+  function formatTime(ms) {
+    var s = Math.floor(ms / 1000);
+    var m = Math.floor(s / 60);
+    s = s % 60;
+    return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  }
+  function tickTimer() {
+    var now = Date.now();
+    el("fullTimerDisp").textContent = formatTime(timerElapsed + (timerId ? now - timerStarted : 0));
+  }
+  function startTimer() {
+    if (!el("fullTimer").checked) return;
+    if (timerId) return;
+    timerStarted = Date.now();
+    timerId = setInterval(tickTimer, 200);
+  }
+  function stopTimer() {
+    if (!timerId) return;
+    timerElapsed += Date.now() - timerStarted;
+    clearInterval(timerId);
+    timerId = null;
+    tickTimer();
+  }
+  function resetTimer() {
+    stopTimer();
+    timerElapsed = 0;
+    tickTimer();
+  }
+
+  async function toggleRecord(btn, playBtn, statusEl) {
+    if (isRecording) {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+      return;
+    }
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recordedChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = function (e) { if (e.data.size) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = function () {
+        isRecording = false;
+        btn.textContent = btn.id.indexOf("Full") >= 0 ? "🎙️ 開始錄音背誦" : "🎙️ 錄音";
+        stream.getTracks().forEach(function (t) { t.stop(); });
+        if (recordedUrl) URL.revokeObjectURL(recordedUrl);
+        recordedUrl = URL.createObjectURL(new Blob(recordedChunks, { type: "audio/webm" }));
+        playBtn.disabled = false;
+        statusEl.textContent = "錄音完成，可按「重聽」或開始辨識。";
+        stopTimer();
+      };
+      mediaRecorder.start();
+      isRecording = true;
+      btn.textContent = "⏹ 停止錄音";
+      statusEl.textContent = "錄音中…";
+      startTimer();
+    } catch (e) {
+      statusEl.textContent = "無法使用麥克風，請允許權限並用 Chrome。";
+    }
+  }
+  function playback() { if (recordedUrl) new Audio(recordedUrl).play(); }
+
+  function startRecognition(targetText, statusEl, scoreEl, labelEl, heardEl, marksTarget, onScore) {
+    var SR = getSR();
+    if (!SR) { statusEl.textContent = "此瀏覽器不支援語音辨識，請用 Chrome。"; return; }
+    if (isRecognizing && recognition) { try { recognition.stop(); } catch (e) {} return; }
+    recognition = new SR();
+    recognition.lang = "zh-CN";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    var finalText = "";
+    isRecognizing = true;
+    statusEl.textContent = "正在聽你讀…（再按一次結束）";
+    startTimer();
+    recognition.onresult = function (ev) {
+      var interim = "";
+      for (var i = ev.resultIndex; i < ev.results.length; i++) {
+        var t = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) finalText += t; else interim += t;
+      }
+      heardEl.textContent = "辨識：" + (finalText || interim || "…");
+    };
+    recognition.onerror = function (ev) {
+      statusEl.textContent = "辨識錯誤：" + (ev.error || "") + "（需網絡）";
+      isRecognizing = false;
+      stopTimer();
+    };
+    recognition.onend = function () {
+      isRecognizing = false;
+      stopTimer();
+      var heard = finalText.trim();
+      if (!heard) { statusEl.textContent = "沒有辨識到內容，請再試。"; return; }
+      var cmp = compareHan(targetText, heard);
+      scoreEl.textContent = cmp.score + "%";
+      scoreEl.className = "score-circle " + scoreClass(cmp.score);
+      labelEl.textContent = cmp.score >= 85 ? "很棒！" : cmp.score >= 60 ? "不錯，再練一次" : "加油，對照提示再試";
+      heardEl.textContent = "辨識：" + heard;
+      statusEl.textContent = "對上 " + cmp.ok + "／" + cmp.total + " 字";
+      if (marksTarget) {
+        var lineMarks = [];
+        var mi = 0;
+        marksTarget.chars.forEach(function (ch) {
+          if (isPunct(ch.c)) lineMarks.push("");
+          else lineMarks.push(cmp.marks[mi++] || "miss");
+        });
+        el("lineBox").innerHTML = renderChars(marksTarget.chars, { showPinyin: el("linePinyin").checked, marks: lineMarks });
+      }
+      if (onScore) onScore(cmp.score);
+    };
+    recognition.start();
+  }
+
+  function bind() {
+    if (bound) return;
+    bound = true;
+    document.querySelectorAll(".tab").forEach(function (t) {
+      t.addEventListener("click", function () { switchMode(t.getAttribute("data-mode")); });
+    });
+    el("listenPinyin").addEventListener("change", renderListen);
+    el("btnListenAll").addEventListener("click", function () {
+      speak(POEM.lines.map(function (l) { return l.text; }).join(""), el("listenSlow").checked);
+      markMode("listen");
+    });
+    el("btnStopListen").addEventListener("click", stopSpeak);
+
+    el("linePinyin").addEventListener("change", renderLine);
+    el("btnLinePrev").addEventListener("click", function () { if (lineIdx > 0) { lineIdx--; renderLine(); } });
+    el("btnLineNext").addEventListener("click", function () { if (lineIdx < POEM.lines.length - 1) { lineIdx++; renderLine(); } });
+    el("btnLineListen").addEventListener("click", function () { speak(POEM.lines[lineIdx].text, el("lineSlow").checked); });
+    el("btnLineRec").addEventListener("click", function () { toggleRecord(el("btnLineRec"), el("btnLinePlay"), el("lineStatus")); });
+    el("btnLinePlay").addEventListener("click", playback);
+    el("btnLineRecog").addEventListener("click", function () {
+      startRecognition(POEM.lines[lineIdx].text, el("lineStatus"), el("lineScore"), el("lineScoreLabel"), el("lineHeard"), POEM.lines[lineIdx], function (sc) { markLine(lineIdx, sc); });
+    });
+
+    el("hideLevel").addEventListener("change", renderHide);
+    el("btnHidePrev").addEventListener("click", function () { if (hideIdx > 0) { hideIdx--; renderHide(); } });
+    el("btnHideNext").addEventListener("click", function () { if (hideIdx < POEM.lines.length - 1) { hideIdx++; renderHide(); } });
+    el("btnHideListen").addEventListener("click", function () { speak(POEM.lines[hideIdx].text, true); });
+    el("btnHideReveal").addEventListener("click", function () {
+      el("hideBox").querySelectorAll(".char.blank").forEach(function (node) { node.classList.add("revealed"); });
+      el("hideStatus").textContent = "已全部揭曉。";
+      markLine(hideIdx, Math.max(progress.lines[hideIdx] || 0, 50));
+    });
+    el("btnHideShuffle").addEventListener("click", function () {
+      var opts = ["first3", "odd", "even", "punct", "all"];
+      var cur = el("hideLevel").value;
+      el("hideLevel").value = opts[(opts.indexOf(cur) + 1) % opts.length];
+      renderHide();
+      el("hideStatus").textContent = "已切換難度。";
+    });
+
+    el("fillPick").addEventListener("change", renderFill);
+    el("btnFillPrev").addEventListener("click", function () { if (fillIdx > 0) { fillIdx--; fillTargets = []; renderFill(); } });
+    el("btnFillNext").addEventListener("click", function () { if (fillIdx < POEM.lines.length - 1) { fillIdx++; fillTargets = []; renderFill(); } });
+    el("btnFillReset").addEventListener("click", function () { fillTargets = []; renderFill(); el("fillStatus").textContent = "已重設。"; });
+    el("btnFillListen").addEventListener("click", function () { speak(POEM.lines[fillIdx].text, true); });
+    el("btnFillCheck").addEventListener("click", function () {
+      var line = POEM.lines[fillIdx];
+      if (!el("fillPick").checked) {
+        var typed = onlyHan(el("fillInput").value);
+        fillTargets.forEach(function (bi, i) { fillAnswers[bi] = typed[i] || ""; });
+      }
+      var ok = 0;
+      fillTargets.forEach(function (bi) { if (fillAnswers[bi] === line.chars[bi].c) ok++; });
+      var score = Math.round((ok / fillTargets.length) * 100);
+      el("fillStatus").textContent = "答對 " + ok + "／" + fillTargets.length + "（" + score + "%）";
+      el("fillPrompt").querySelectorAll(".blank-cell").forEach(function (node) {
+        var bi = +node.getAttribute("data-bi");
+        node.classList.remove("filled", "wrong");
+        node.classList.add(fillAnswers[bi] === line.chars[bi].c ? "filled" : "wrong");
+        node.textContent = fillAnswers[bi] || "　";
+      });
+      markLine(fillIdx, score);
+    });
+
+    el("fullShow").addEventListener("change", renderFull);
+    el("btnFullReset").addEventListener("click", resetTimer);
+    el("btnFullRec").addEventListener("click", function () { toggleRecord(el("btnFullRec"), el("btnFullPlay"), el("fullStatus")); });
+    el("btnFullPlay").addEventListener("click", playback);
+    el("btnFullRecog").addEventListener("click", function () {
+      var full = POEM.lines.map(function (l) { return l.text; }).join("");
+      startRecognition(full, el("fullStatus"), el("fullScore"), el("fullScoreLabel"), el("fullHeard"), null, function (sc) {
+        if (sc > (progress.bestFull || 0)) progress.bestFull = sc;
+        saveProgress();
+      });
+    });
+
+    if (window.speechSynthesis) {
+      speechSynthesis.getVoices();
+      speechSynthesis.onvoiceschanged = function () { speechSynthesis.getVoices(); };
+    }
+    if (window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+      el("browserNote").innerHTML = "<strong>狀態：</strong>可使用麥克風與語音功能。請用 Chrome。語音辨識通常需要網絡連線。";
+    }
+  }
+
+  window.__applyUnlockedSentences = function (data) {
+    POEM = data;
+    if (POEM.assessment) el("subMeta").textContent = POEM.assessment;
+    lineIdx = hideIdx = fillIdx = 0;
+    fillTargets = [];
+    bind();
+    updateProgressUI();
+    renderListen();
+    renderLine();
+    renderHide();
+    renderFill();
+    renderFull();
+  };
+})();
+</script>
+
+<script>
+(function () {
+  const PASS_SHA256 = "19ab0de38e8ceca93aa96a02631db273cb735a07b6347211eb7e1e31fb8c25c9";
+  const KEY = "poem_drill_mingrige_unlocked_v1";
+  const gate = document.getElementById("gate");
+  const app = document.getElementById("app-root");
+  const form = document.getElementById("gate-form");
+  const input = document.getElementById("gate-pw");
+  const err = document.getElementById("gate-err");
+
+  async function decryptSentences(password) {
+    const raw = Uint8Array.from(atob(window.ENCRYPTED_SENTENCES_B64), c => c.charCodeAt(0));
+    const nonce = raw.slice(0, 12);
+    const data = raw.slice(12);
+    const keyBytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
+    const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, data);
+    const text = new TextDecoder().decode(plain);
+    return JSON.parse(text);
+  }
+
+  async function sha256Hex(text) {
+    const data = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function unlock() {
+    try {
+      sessionStorage.setItem(KEY, "1");
+      if (window.__gatePw) sessionStorage.setItem(KEY + "_pw", window.__gatePw);
+    } catch (e) {}
+    gate.classList.add("hidden");
+    if (app) app.classList.remove("locked");
+  }
+
+  function isUnlocked() {
+    try { return sessionStorage.getItem(KEY) === "1"; } catch (e) { return false; }
+  }
+
+  if (isUnlocked()) {
+    (async () => {
+      try {
+        const pw = sessionStorage.getItem(KEY + "_pw");
+        if (!pw) { try { sessionStorage.removeItem(KEY); } catch (e) {} return; }
+        const parsed = await decryptSentences(pw);
+        window.__applyUnlockedSentences(parsed);
+        unlock();
+      } catch (e) {
+        try { sessionStorage.removeItem(KEY); sessionStorage.removeItem(KEY + "_pw"); } catch (e2) {}
+      }
+    })();
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    err.textContent = "";
+    const val = (input.value || "").trim();
+    window.__gatePw = val;
+    if (!val) { err.textContent = "請輸入密碼"; return; }
+    try {
+      const h = await sha256Hex(val);
+      if (h === PASS_SHA256) {
+        try {
+          const parsed = await decryptSentences(val);
+          window.__applyUnlockedSentences(parsed);
+          unlock();
+        } catch (ex) {
+          err.textContent = "解鎖失敗，請重試";
+          console.error(ex);
+        }
+      } else {
+        err.textContent = "密碼不正確";
+        input.select();
+      }
+    } catch (ex) {
+      err.textContent = "此瀏覽器不支援驗證，請用 Chrome 或 Edge";
+    }
+  });
+})();
+</script>
+</body>
+</html>

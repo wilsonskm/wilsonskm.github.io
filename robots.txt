@@ -1,7 +1,9 @@
 User-agent: *
 Disallow: /oral-drill/
 Disallow: /putonghua-practice/
+Disallow: /poem-drill/
 
 User-agent: Googlebot
 Disallow: /oral-drill/
 Disallow: /putonghua-practice/
+Disallow: /poem-drill/

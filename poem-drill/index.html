@@ -115,6 +115,30 @@ audio{width:100%;margin-top:8px}
 @media (max-width:520px){
   .tabs{grid-template-columns:repeat(3,1fr)}
 }
+
+.gate-dots{display:flex;justify-content:center;gap:8px;margin:10px 0 4px;flex-wrap:wrap}
+.gate-dot{
+  width:14px;height:14px;border-radius:50%;background:#e2e8f0;border:2px solid #cbd5e0;
+}
+.gate-dot.current{border-color:var(--primary);background:#bee3f8;box-shadow:0 0 0 3px rgba(43,108,176,.2)}
+.gate-dot.mastered{background:var(--accent);border-color:#276749}
+.gate-success-badge{
+  display:inline-flex;align-items:center;gap:6px;background:#c6f6d5;color:#22543d;
+  font-weight:800;padding:6px 14px;border-radius:999px;font-size:1rem;margin:8px 0
+}
+.gate-celebrate{
+  text-align:center;padding:10px;border-radius:12px;background:linear-gradient(90deg,#c6f6d5,#fefcbf,#bee3f8);
+  font-weight:800;color:#22543d;margin:8px 0;animation:pop .45s ease
+}
+@keyframes pop{0%{transform:scale(.92);opacity:.4}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+.gate-complete{
+  text-align:center;padding:18px 12px;border-radius:14px;background:linear-gradient(160deg,#f0fff4,#ebf8ff);
+  border:2px solid #9ae6b4;margin-top:10px
+}
+.gate-complete h3{margin:0 0 8px;color:#22543d;font-size:1.35rem}
+.gate-prompt{color:var(--muted);font-size:1.05rem;padding:12px}
+.line-box.gate-locked .hz{color:transparent;border-bottom:2px solid #a0aec0;min-width:1.1em}
+
 </style>
 </head>
 <body>
@@ -152,7 +176,7 @@ audio{width:100%;margin-top:8px}
   <div class="tabs" role="tablist">
     <button type="button" class="tab active" data-mode="listen">聽範例</button>
     <button type="button" class="tab" data-mode="visual">詩畫記憶</button>
-    <button type="button" class="tab" data-mode="line">逐句練習</button>
+    <button type="button" class="tab" data-mode="line">逐句過關</button>
     <button type="button" class="tab" data-mode="hide">遮字背誦</button>
     <button type="button" class="tab" data-mode="fill">填空默寫</button>
     <button type="button" class="tab" data-mode="full">全文背誦</button>
@@ -248,25 +272,29 @@ audio{width:100%;margin-top:8px}
       </div>
     </div>
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <span class="badge" id="lineBadge">第 1／6 句</span>
         <div class="toggles" style="margin:0">
-          <label class="toggle"><input type="checkbox" id="linePinyin" checked/> 拼音</label>
+          <label class="toggle"><input type="checkbox" id="linePinyin" checked/> 顯示拼音提示</label>
           <label class="toggle"><input type="checkbox" id="lineSlow" checked/> 稍慢</label>
         </div>
       </div>
+      <div class="gate-dots" id="gateDots" aria-label="過關進度"></div>
+      <div id="gateCelebrate" class="gate-celebrate" style="display:none" aria-live="polite"></div>
+      <div id="gateSuccessBadge" class="gate-success-badge" style="display:none">✓ 成功</div>
       <div class="line-box" id="lineBox" aria-live="polite"></div>
       <div class="nav">
-        <button type="button" class="btn btn-gray" id="btnLinePrev">← 上一句</button>
-        <button type="button" class="btn btn-gray" id="btnLineNext">下一句 →</button>
+        <button type="button" class="btn btn-gray" id="btnLinePrev">← 已過關句</button>
+        <button type="button" class="btn btn-primary" id="btnLineNext" style="display:none">下一句 →</button>
       </div>
       <div class="btn-row">
         <button type="button" class="btn btn-primary" id="btnLineListen">🔊 聽這句</button>
-        <button type="button" class="btn btn-orange" id="btnLineRec">🎙️ 錄音</button>
         <button type="button" class="btn btn-green" id="btnLineRecog">🎤 開始辨識</button>
+        <button type="button" class="btn btn-orange" id="btnLineRetry" style="display:none">🔄 再試一次</button>
         <button type="button" class="btn btn-outline" id="btnLinePlay" disabled>▶️ 重聽我的</button>
+        <button type="button" class="btn btn-orange" id="btnLineRec" style="display:none">🎙️ 錄音</button>
       </div>
-      <div class="status" id="lineStatus">準備好就按「聽這句」或「開始辨識」。</div>
+      <div class="status" id="lineStatus">逐句過關：背啱呢句先可以去下一句。準備好就按「開始辨識」，背完再按「停止辨識」。</div>
       <div class="score-row">
         <div class="score-circle" id="lineScore">—</div>
         <div>
@@ -274,7 +302,17 @@ audio{width:100%;margin-top:8px}
           <div id="lineHeard" style="font-size:.88rem;color:var(--muted)">辨識結果會顯示在這裡</div>
         </div>
       </div>
-      <div class="tips"><strong>練習小貼士</strong><ul id="lineTips"></ul></div>
+      <div class="tips"><strong>過關說明</strong><ul id="lineTips">
+        <li>達標：漢字對上 ≥ 75%</li>
+        <li>成功：顯示原句並標示「成功」，再入下一句</li>
+        <li>未過：鼓勵重試，唔會跳去下一句</li>
+      </ul></div>
+      <div id="gateComplete" class="gate-complete" style="display:none" aria-live="polite">
+        <h3>🎉 全部過關！</h3>
+        <p id="gateCompleteMsg" style="margin:0 0 10px;color:#2f855a;font-weight:700">六句都背啱喇，好叻！</p>
+        <div id="gateCompletePoem" style="text-align:left;font-size:1.05rem;line-height:1.8;margin:8px 0 12px"></div>
+        <button type="button" class="btn btn-green" id="btnGateRestart">⟲ 再過一次關</button>
+      </div>
     </div>
   </section>
 
@@ -382,6 +420,11 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
   var POEM = null;
   var STORAGE_KEY = "poem_drill_mingrige_v1";
   var lineIdx = 0, hideIdx = 0, fillIdx = 0;
+  var GATE_PASS = 75; /* 漢字對上比例達標先過關 */
+  var gateMastered = {}; /* line index -> true */
+  var gateAdvanceTimer = null;
+  var gateJustFailed = false;
+  var gateViewingReview = false; /* viewing an earlier mastered line */
   var mediaRecorder = null, recordedChunks = [], recordedUrl = null, isRecording = false;
   var recognition = null, isRecognizing = false;
   var timerId = null, timerStarted = 0, timerElapsed = 0;
@@ -450,9 +493,11 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
   function loadProgress() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { modes: {}, lines: {}, bestFull: 0 };
-      return JSON.parse(raw);
-    } catch (e) { return { modes: {}, lines: {}, bestFull: 0 }; }
+      if (!raw) return { modes: {}, lines: {}, bestFull: 0, gateMastered: {} };
+      var p = JSON.parse(raw);
+      if (!p.gateMastered) p.gateMastered = {};
+      return p;
+    } catch (e) { return { modes: {}, lines: {}, bestFull: 0, gateMastered: {} }; }
   }
   function saveProgress() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) {}
@@ -471,12 +516,14 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
     if (!POEM) return;
     var n = POEM.lines.length;
     var done = 0;
-    for (var i = 0; i < n; i++) if ((progress.lines[i] || 0) >= 70) done++;
+    for (var i = 0; i < n; i++) {
+      if ((progress.gateMastered && progress.gateMastered[i]) || (progress.lines[i] || 0) >= GATE_PASS) done++;
+    }
     var modeBonus = Math.min(20, Object.keys(progress.modes || {}).length * 4);
     var pct = Math.min(100, Math.round((done / n) * 80 + modeBonus));
     el("progressBadge").textContent = "進度 " + pct + "%";
     el("progressFill").style.width = pct + "%";
-    el("progressLabel").textContent = "已練熟 " + done + "／" + n + " 句" + (progress.bestFull ? (" · 全文最佳 " + progress.bestFull + "%") : "");
+    el("progressLabel").textContent = "過關 " + done + "／" + n + " 句" + (progress.bestFull ? (" · 全文最佳 " + progress.bestFull + "%") : "");
   }
 
   function onlyHan(s) { return (s || "").replace(/[^\u4e00-\u9fff]/g, ""); }
@@ -595,20 +642,249 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
     });
   }
 
-  function renderLine() {
+  function isGateMastered(i) {
+    return !!(progress.gateMastered && progress.gateMastered[i]);
+  }
+  function currentGateChallengeIdx() {
+    if (!POEM) return 0;
+    for (var i = 0; i < POEM.lines.length; i++) {
+      if (!isGateMastered(i)) return i;
+    }
+    return POEM.lines.length; /* all done */
+  }
+  function syncGateMasteredFromProgress() {
+    if (!progress.gateMastered) progress.gateMastered = {};
+    gateMastered = progress.gateMastered;
+  }
+  function renderGateDots() {
+    var wrap = el("gateDots");
+    if (!wrap || !POEM) return;
+    var n = POEM.lines.length;
+    var html = "";
+    for (var i = 0; i < n; i++) {
+      var cls = "gate-dot";
+      if (isGateMastered(i)) cls += " mastered";
+      if (i === lineIdx) cls += " current";
+      html += '<span class="' + cls + '" title="第 ' + (i + 1) + ' 句"></span>';
+    }
+    wrap.innerHTML = html;
+  }
+  function hideGateChromeCelebrate() {
+    var c = el("gateCelebrate");
+    if (c) { c.style.display = "none"; c.textContent = ""; }
+  }
+  function showGateCelebrate(msg) {
+    var c = el("gateCelebrate");
+    if (!c) return;
+    c.textContent = msg;
+    c.style.display = "block";
+  }
+  function renderLine(opt) {
+    opt = opt || {};
+    if (!POEM) return;
+    syncGateMasteredFromProgress();
+    var n = POEM.lines.length;
+    var challenge = currentGateChallengeIdx();
+    var allDone = challenge >= n;
+
+    /* Keep lineIdx on challenge unless reviewing earlier mastered */
+    if (!opt.keepIdx) {
+      if (allDone) lineIdx = n - 1;
+      else if (!isGateMastered(lineIdx) && lineIdx !== challenge && !gateViewingReview) lineIdx = challenge;
+      else if (lineIdx > challenge) lineIdx = challenge;
+    }
+
     var line = POEM.lines[lineIdx];
-    el("lineBadge").textContent = "第 " + (lineIdx + 1) + "／" + POEM.lines.length + " 句";
-    el("lineBox").innerHTML = renderChars(line.chars, { showPinyin: el("linePinyin").checked });
-    el("btnLinePrev").disabled = lineIdx === 0;
-    el("btnLineNext").disabled = lineIdx === POEM.lines.length - 1;
+    var masteredHere = isGateMastered(lineIdx);
+    var isChallenge = !allDone && lineIdx === challenge;
+    el("lineBadge").textContent = "第 " + (lineIdx + 1) + "／" + n + " 句";
+    renderGateDots();
     showVisual(lineIdx, "lineVisualVid", "lineVisualCap", null);
-    var ul = el("lineTips");
-    ul.innerHTML = "";
-    (line.tips || []).forEach(function (t) {
-      var li = document.createElement("li");
-      li.textContent = t;
-      ul.appendChild(li);
+    /* 挑戰中唔顯示字幕原句，避免直接睇到答案 */
+    var capLine = el("lineVisualCap") && el("lineVisualCap").querySelector(".vc-line");
+    if (capLine) {
+      var ch = currentGateChallengeIdx();
+      var hideText = !(isGateMastered(lineIdx) || opt.revealSuccess || (opt.marks && gateJustFailed) || ch >= POEM.lines.length);
+      if (hideText) capLine.textContent = "第 " + (lineIdx + 1) + " 句 · 試下背出嚟";
+    }
+
+    var badge = el("gateSuccessBadge");
+    var complete = el("gateComplete");
+    var btnNext = el("btnLineNext");
+    var btnRetry = el("btnLineRetry");
+    var btnRecog = el("btnLineRecog");
+    var showPy = el("linePinyin").checked;
+
+    if (allDone && !opt.forcePractice) {
+      if (badge) badge.style.display = "inline-flex";
+      el("lineBox").className = "line-box";
+      el("lineBox").innerHTML = renderChars(line.chars, { showPinyin: showPy, marks: opt.marks || null });
+      if (complete) {
+        complete.style.display = "block";
+        var poemHtml = "<div style='font-weight:800;text-align:center;margin-bottom:6px'>《" + POEM.title + "》</div>";
+        POEM.lines.forEach(function (L, i) {
+          poemHtml += "<div>" + (i + 1) + ". " + L.text + "</div>";
+        });
+        el("gateCompletePoem").innerHTML = poemHtml;
+      }
+      if (btnNext) btnNext.style.display = "none";
+      if (btnRetry) btnRetry.style.display = "none";
+      if (btnRecog) btnRecog.style.display = "none";
+      el("btnLinePrev").disabled = lineIdx === 0;
+      if (!opt.fromScore) {
+        el("lineStatus").textContent = "恭喜！六句都過關喇。可以睇返全文，或者再過一次關。";
+      }
+      return;
+    }
+
+    if (complete) complete.style.display = "none";
+    if (btnRecog) btnRecog.style.display = "";
+
+    if (masteredHere && !isChallenge) {
+      if (badge) badge.style.display = "inline-flex";
+      el("lineBox").className = "line-box";
+      el("lineBox").innerHTML = renderChars(line.chars, { showPinyin: showPy, marks: opt.marks || null });
+      if (btnNext) {
+        btnNext.style.display = "";
+        btnNext.disabled = lineIdx >= challenge && challenge < n ? true : lineIdx >= n - 1;
+        if (lineIdx < challenge) {
+          btnNext.disabled = false;
+          btnNext.textContent = "下一句 →";
+        } else if (challenge < n) {
+          btnNext.style.display = "";
+          btnNext.disabled = false;
+          btnNext.textContent = "去挑戰第 " + (challenge + 1) + " 句 →";
+        }
+      }
+      if (btnRetry) btnRetry.style.display = "none";
+      if (!opt.fromScore) {
+        el("lineStatus").textContent = "呢句已過關。可以聽返、或者去未過關嘅句子。";
+      }
+    } else if (opt.marks && gateJustFailed) {
+      /* Fail: show marks (not a free pass) + stay */
+      if (badge) badge.style.display = "none";
+      el("lineBox").className = "line-box";
+      el("lineBox").innerHTML = renderChars(line.chars, { showPinyin: showPy, marks: opt.marks });
+      if (btnNext) btnNext.style.display = "none";
+      if (btnRetry) btnRetry.style.display = "";
+      if (btnRecog) {
+        btnRecog.style.display = "";
+        btnRecog.textContent = "🎤 再辨識一次";
+      }
+    } else if (opt.revealSuccess) {
+      if (badge) badge.style.display = "inline-flex";
+      el("lineBox").className = "line-box";
+      el("lineBox").innerHTML = renderChars(line.chars, { showPinyin: showPy, marks: opt.marks || null });
+      if (btnRetry) btnRetry.style.display = "none";
+      if (btnNext) {
+        btnNext.style.display = lineIdx < n - 1 ? "" : "none";
+        btnNext.disabled = false;
+        btnNext.textContent = "下一句 →";
+      }
+    } else {
+      /* Challenge prompt: hide Han until success (pinyin optional as hint) */
+      if (badge) badge.style.display = "none";
+      hideGateChromeCelebrate();
+      el("lineBox").className = "line-box gate-locked";
+      var promptHtml = '<div class="gate-prompt">請背誦第 ' + (lineIdx + 1) + ' 句</div>';
+      promptHtml += renderChars(line.chars, {
+        showPinyin: showPy,
+        blankFn: function (ch) { return !isPunct(ch.c); }
+      });
+      el("lineBox").innerHTML = promptHtml;
+      if (btnNext) btnNext.style.display = "none";
+      if (btnRetry) btnRetry.style.display = "none";
+      if (btnRecog) {
+        btnRecog.style.display = "";
+        if (!btnRecog.getAttribute("data-old-label") && btnRecog.innerHTML.indexOf("停止") < 0) {
+          btnRecog.textContent = "🎤 開始辨識";
+        }
+      }
+      if (!opt.fromScore) {
+        el("lineStatus").textContent = "背呢一句；可先「聽這句」。按綠色掣開始，背完再按「停止辨識」。達標要 ≥ " + GATE_PASS + "%。";
+      }
+    }
+
+    el("btnLinePrev").disabled = lineIdx === 0;
+    var tips = el("lineTips");
+    if (tips && !tips.querySelector("li")) {
+      tips.innerHTML = "<li>達標：漢字對上 ≥ " + GATE_PASS + "%</li>" +
+        "<li>成功：顯示原句並標示「成功」，再入下一句</li>" +
+        "<li>未過：鼓勵重試，唔會跳去下一句</li>";
+    }
+    (line.tips || []).slice(0, 2).forEach(function (t) {
+      /* keep static tips; optional line tips appended once */
     });
+  }
+
+  function encourageFail() {
+    var msgs = [
+      "差少少，再試一次！",
+      "加油，再背一次呢句！",
+      "唔緊要，聽一次再試啦！",
+      "快啲喇，再嚟過！",
+      "慢慢嚟，再試一次就得！"
+    ];
+    return msgs[Math.floor(Math.random() * msgs.length)];
+  }
+
+  function onGateScore(cmp, marksTarget) {
+    var score = cmp.score;
+    markLine(lineIdx, score);
+    gateJustFailed = false;
+    hideGateChromeCelebrate();
+    var lineMarks = [];
+    var mi = 0;
+    marksTarget.chars.forEach(function (ch) {
+      if (isPunct(ch.c)) lineMarks.push("");
+      else lineMarks.push(cmp.marks[mi++] || "miss");
+    });
+    if (score >= GATE_PASS) {
+      if (!progress.gateMastered) progress.gateMastered = {};
+      progress.gateMastered[lineIdx] = true;
+      saveProgress();
+      gateViewingReview = false;
+      el("lineScore").textContent = score + "%";
+      el("lineScore").className = "score-circle " + scoreClass(score);
+      el("lineScoreLabel").textContent = "成功！已過關";
+      el("lineStatus").textContent = "對上 " + cmp.ok + "／" + cmp.total + " 字 — 過關！";
+      showGateCelebrate("太棒了！第 " + (lineIdx + 1) + " 句過關！");
+      renderLine({ revealSuccess: true, marks: lineMarks, keepIdx: true, fromScore: true });
+      if (gateAdvanceTimer) clearTimeout(gateAdvanceTimer);
+      var n = POEM.lines.length;
+      if (currentGateChallengeIdx() >= n) {
+        gateAdvanceTimer = setTimeout(function () {
+          hideGateChromeCelebrate();
+          renderLine({ fromScore: true });
+          el("lineStatus").textContent = "全部六句都過關喇！🎉";
+        }, 1200);
+      } else {
+        var nextBtn = el("btnLineNext");
+        if (nextBtn) { nextBtn.style.display = ""; nextBtn.disabled = false; nextBtn.textContent = "下一句 →"; }
+        gateAdvanceTimer = setTimeout(function () {
+          /* auto-advance unless user already moved */
+          if (isGateMastered(lineIdx) && lineIdx + 1 < n && !isGateMastered(lineIdx + 1)) {
+            lineIdx++;
+            gateJustFailed = false;
+            el("lineScore").textContent = "—";
+            el("lineScore").className = "score-circle";
+            el("lineScoreLabel").textContent = "尚未評分";
+            el("lineHeard").textContent = "辨識結果會顯示在這裡";
+            hideGateChromeCelebrate();
+            renderLine();
+          } else if (currentGateChallengeIdx() >= n) {
+            renderLine();
+          }
+        }, 1600);
+      }
+    } else {
+      gateJustFailed = true;
+      el("lineScore").textContent = score + "%";
+      el("lineScore").className = "score-circle " + scoreClass(score);
+      el("lineScoreLabel").textContent = encourageFail();
+      el("lineStatus").textContent = "對上 " + cmp.ok + "／" + cmp.total + " 字 — 未達 " + GATE_PASS + "%，請再試呢一句。";
+      renderLine({ marks: lineMarks, keepIdx: true, fromScore: true });
+    }
   }
 
   function hideBlankFn(level) {
@@ -836,19 +1112,15 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
       var cmp = compareHan(targetText, heard);
       scoreEl.textContent = cmp.score + "%";
       scoreEl.className = "score-circle " + scoreClass(cmp.score);
-      labelEl.textContent = cmp.score >= 85 ? "很棒！" : cmp.score >= 60 ? "不錯，再練一次" : "加油，對照提示再試";
       heardEl.textContent = "辨識：" + heard;
-      statusEl.textContent = "對上 " + cmp.ok + "／" + cmp.total + " 字";
-      if (marksTarget) {
-        var lineMarks = [];
-        var mi = 0;
-        marksTarget.chars.forEach(function (ch) {
-          if (isPunct(ch.c)) lineMarks.push("");
-          else lineMarks.push(cmp.marks[mi++] || "miss");
-        });
-        el("lineBox").innerHTML = renderChars(marksTarget.chars, { showPinyin: el("linePinyin").checked, marks: lineMarks });
+      if (marksTarget && onScore) {
+        /* 逐句過關：交俾 onScore 處理成功／失敗 UI */
+        onScore(cmp.score, cmp, marksTarget);
+        return;
       }
-      if (onScore) onScore(cmp.score);
+      labelEl.textContent = cmp.score >= 85 ? "很棒！" : cmp.score >= 60 ? "不錯，再練一次" : "加油，對照提示再試";
+      statusEl.textContent = "對上 " + cmp.ok + "／" + cmp.total + " 字";
+      if (onScore) onScore(cmp.score, cmp, null);
     }
     function attachAndStart() {
       if (!window.__srKeepGoing) { finishScore(); return; }
@@ -920,15 +1192,111 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
     });
     el("btnStopListen").addEventListener("click", stopSpeak);
 
-    el("linePinyin").addEventListener("change", renderLine);
-    el("btnLinePrev").addEventListener("click", function () { if (lineIdx > 0) { lineIdx--; renderLine(); } });
-    el("btnLineNext").addEventListener("click", function () { if (lineIdx < POEM.lines.length - 1) { lineIdx++; renderLine(); } });
+    el("linePinyin").addEventListener("change", function () { renderLine({ keepIdx: true }); });
+    el("btnLinePrev").addEventListener("click", function () {
+      if (lineIdx <= 0) return;
+      /* 只可以返回已過關或當前挑戰之前嘅句子 */
+      var challenge = currentGateChallengeIdx();
+      var dest = lineIdx - 1;
+      if (dest > challenge) dest = challenge;
+      lineIdx = dest;
+      gateViewingReview = isGateMastered(lineIdx) && lineIdx < challenge;
+      gateJustFailed = false;
+      hideGateChromeCelebrate();
+      el("lineScore").textContent = "—";
+      el("lineScore").className = "score-circle";
+      el("lineScoreLabel").textContent = isGateMastered(lineIdx) ? "已過關" : "尚未評分";
+      el("lineHeard").textContent = "";
+      renderLine({ keepIdx: true });
+    });
+    el("btnLineNext").addEventListener("click", function () {
+      var challenge = currentGateChallengeIdx();
+      var n = POEM.lines.length;
+      if (challenge >= n) {
+        /* all done: browse forward among lines */
+        if (lineIdx < n - 1) { lineIdx++; renderLine({ keepIdx: true }); }
+        return;
+      }
+      if (isGateMastered(lineIdx) && lineIdx < challenge) {
+        lineIdx++;
+        gateViewingReview = lineIdx < challenge;
+        gateJustFailed = false;
+        hideGateChromeCelebrate();
+        el("lineScore").textContent = "—";
+        el("lineScore").className = "score-circle";
+        el("lineScoreLabel").textContent = "尚未評分";
+        el("lineHeard").textContent = "";
+        renderLine({ keepIdx: true });
+        return;
+      }
+      if (isGateMastered(lineIdx) && lineIdx + 1 === challenge) {
+        lineIdx = challenge;
+        gateViewingReview = false;
+        gateJustFailed = false;
+        hideGateChromeCelebrate();
+        el("lineScore").textContent = "—";
+        el("lineScore").className = "score-circle";
+        el("lineScoreLabel").textContent = "尚未評分";
+        el("lineHeard").textContent = "";
+        renderLine({ keepIdx: true });
+      }
+    });
     el("btnLineListen").addEventListener("click", function () { speak(POEM.lines[lineIdx].text, el("lineSlow").checked); });
     el("btnLineRec").addEventListener("click", function () { toggleRecord(el("btnLineRec"), el("btnLinePlay"), el("lineStatus")); });
     el("btnLinePlay").addEventListener("click", playback);
     el("btnLineRecog").addEventListener("click", function () {
-      startRecognition(POEM.lines[lineIdx].text, el("lineStatus"), el("lineScore"), el("lineScoreLabel"), el("lineHeard"), POEM.lines[lineIdx], function (sc) { markLine(lineIdx, sc); });
+      if (gateAdvanceTimer) { clearTimeout(gateAdvanceTimer); gateAdvanceTimer = null; }
+      hideGateChromeCelebrate();
+      gateJustFailed = false;
+      startRecognition(
+        POEM.lines[lineIdx].text,
+        el("lineStatus"),
+        el("lineScore"),
+        el("lineScoreLabel"),
+        el("lineHeard"),
+        POEM.lines[lineIdx],
+        function (sc, cmp, marksTarget) {
+          if (cmp && marksTarget) onGateScore(cmp, marksTarget);
+          else markLine(lineIdx, sc);
+        }
+      );
     });
+    if (el("btnLineRetry")) {
+      el("btnLineRetry").addEventListener("click", function () {
+        gateJustFailed = false;
+        hideGateChromeCelebrate();
+        el("lineScore").textContent = "—";
+        el("lineScore").className = "score-circle";
+        el("lineScoreLabel").textContent = "尚未評分";
+        el("lineHeard").textContent = "辨識結果會顯示在這裡";
+        renderLine({ keepIdx: true });
+        el("lineStatus").textContent = "再試呢一句：按「開始辨識」，背完按「停止辨識」。";
+      });
+    }
+    if (el("btnGateRestart")) {
+      el("btnGateRestart").addEventListener("click", function () {
+        if (!confirm("確定要清掉過關進度，重新由第 1 句開始？")) return;
+        progress.gateMastered = {};
+        for (var i = 0; i < (POEM.lines || []).length; i++) {
+          /* keep best scores but reset gate flags */
+        }
+        saveProgress();
+        lineIdx = 0;
+        gateJustFailed = false;
+        gateViewingReview = false;
+        hideGateChromeCelebrate();
+        el("lineScore").textContent = "—";
+        el("lineScore").className = "score-circle";
+        el("lineScoreLabel").textContent = "尚未評分";
+        el("lineHeard").textContent = "";
+        if (el("btnLineRecog")) {
+          el("btnLineRecog").style.display = "";
+          el("btnLineRecog").textContent = "🎤 開始辨識";
+        }
+        renderLine({ keepIdx: true });
+        el("lineStatus").textContent = "已重新開始過關。加油！";
+      });
+    }
 
     el("hideLevel").addEventListener("change", renderHide);
     el("btnHidePrev").addEventListener("click", function () { if (hideIdx > 0) { hideIdx--; renderHide(); } });
@@ -1031,11 +1399,16 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
     lineIdx = hideIdx = fillIdx = listenVisIdx = memIdx = 0;
     memTextHidden = false;
     fillTargets = [];
+    gateJustFailed = false;
+    gateViewingReview = false;
+    if (gateAdvanceTimer) { clearTimeout(gateAdvanceTimer); gateAdvanceTimer = null; }
+    syncGateMasteredFromProgress();
+    lineIdx = Math.min(currentGateChallengeIdx(), Math.max(0, POEM.lines.length - 1));
     bind();
     updateProgressUI();
     renderListen();
     renderVisualMem();
-    renderLine();
+    renderLine({ keepIdx: true });
     renderHide();
     renderFill();
     renderFull();

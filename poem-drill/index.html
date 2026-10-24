@@ -803,31 +803,45 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
   function startRecognition(targetText, statusEl, scoreEl, labelEl, heardEl, marksTarget, onScore) {
     var SR = getSR();
     if (!SR) { statusEl.textContent = "此瀏覽器不支援語音辨識，請用 Chrome。"; return; }
-    if (isRecognizing && recognition) { try { recognition.stop(); } catch (e) {} return; }
+    /* 再按一次 = 手動停止；停頓唔會自動完 */
+    if (isRecognizing && recognition) {
+      window.__srKeepGoing = false;
+      try { recognition.stop(); } catch (e) {}
+      return;
+    }
     recognition = new SR();
     recognition.lang = "zh-CN";
     recognition.continuous = true;
     recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
     var finalText = "";
+    window.__srKeepGoing = true;
     isRecognizing = true;
-    statusEl.textContent = "正在聽你讀…（再按一次結束）";
-    startTimer();
-    recognition.onresult = function (ev) {
-      var interim = "";
-      for (var i = ev.resultIndex; i < ev.results.length; i++) {
-        var t = ev.results[i][0].transcript;
-        if (ev.results[i].isFinal) finalText += t; else interim += t;
+    statusEl.textContent = "正在聽你讀…（停頓唔會停，請再按掣「停止辨識」）";
+    try {
+      var btn = document.activeElement;
+      if (btn && btn.tagName === "BUTTON") {
+        btn.setAttribute("data-old-label", btn.innerHTML);
+        btn.innerHTML = "⏹ 停止辨識";
       }
-      heardEl.textContent = "辨識：" + (finalText || interim || "…");
-    };
-    recognition.onerror = function (ev) {
-      statusEl.textContent = "辨識錯誤：" + (ev.error || "") + "（需網絡）";
+      window.__srActiveBtn = (btn && btn.tagName === "BUTTON") ? btn : null;
+    } catch (e) {}
+    startTimer();
+    function restoreBtn() {
+      try {
+        var b = window.__srActiveBtn;
+        if (b && b.getAttribute("data-old-label")) {
+          b.innerHTML = b.getAttribute("data-old-label");
+          b.removeAttribute("data-old-label");
+        }
+        window.__srActiveBtn = null;
+      } catch (e) {}
+    }
+    function finishScore() {
       isRecognizing = false;
+      window.__srKeepGoing = false;
       stopTimer();
-    };
-    recognition.onend = function () {
-      isRecognizing = false;
-      stopTimer();
+      restoreBtn();
       var heard = finalText.trim();
       if (!heard) { statusEl.textContent = "沒有辨識到內容，請再試。"; return; }
       var cmp = compareHan(targetText, heard);
@@ -846,8 +860,52 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
         el("lineBox").innerHTML = renderChars(marksTarget.chars, { showPinyin: el("linePinyin").checked, marks: lineMarks });
       }
       if (onScore) onScore(cmp.score);
+    }
+    recognition.onresult = function (ev) {
+      var interim = "";
+      for (var i = ev.resultIndex; i < ev.results.length; i++) {
+        var t = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) finalText += t; else interim += t;
+      }
+      heardEl.textContent = "辨識：" + (finalText + (interim ? interim : "") || "…");
     };
-    recognition.start();
+    recognition.onerror = function (ev) {
+      var err = ev.error || "";
+      /* no-speech / aborted：停頓時常見，若仍要繼續就等 onend 重開 */
+      if (window.__srKeepGoing && (err === "no-speech" || err === "aborted")) return;
+      if (err === "aborted") return;
+      statusEl.textContent = "辨識錯誤：" + err + "（需網絡；請用 Chrome）";
+      window.__srKeepGoing = false;
+      isRecognizing = false;
+      stopTimer();
+      restoreBtn();
+    };
+    recognition.onend = function () {
+      if (window.__srKeepGoing) {
+        try { recognition.start(); }
+        catch (e) {
+          setTimeout(function () {
+            if (!window.__srKeepGoing) return;
+            try { recognition.start(); } catch (e2) {
+              statusEl.textContent = "無法持續收音，請再按綠色掣重試。";
+              window.__srKeepGoing = false;
+              isRecognizing = false;
+              stopTimer();
+              restoreBtn();
+            }
+          }, 250);
+        }
+        return;
+      }
+      finishScore();
+    };
+    try { recognition.start(); }
+    catch (e) {
+      statusEl.textContent = "無法開始辨識，請再試。";
+      window.__srKeepGoing = false;
+      isRecognizing = false;
+      restoreBtn();
+    }
   }
 
   function bind() {

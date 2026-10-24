@@ -26,10 +26,10 @@ header h1{font-size:clamp(1.2rem,4.2vw,1.55rem);margin:0 0 4px;color:var(--prima
 header .sub{color:var(--muted);font-size:.88rem;margin:0}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:14px;margin-bottom:12px}
 .note{background:#fffaf0;border:1px solid #fbd38d;border-radius:12px;padding:10px 12px;font-size:.8rem;color:#744210;margin-bottom:12px}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
 .tab{
   border:2px solid var(--border);background:#fff;border-radius:12px;padding:10px 4px;
-  font-size:.78rem;font-weight:700;color:var(--primary-dark);cursor:pointer;min-height:48px;
+  font-size:.72rem;font-weight:700;color:var(--primary-dark);cursor:pointer;min-height:48px;
 }
 .tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .mode{display:none}.mode.active{display:block}
@@ -102,7 +102,17 @@ footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:8px}
 #gate .err{color:var(--danger);font-size:.85rem;min-height:1.2em;margin-top:8px}
 #app-root.locked{visibility:hidden;height:0;overflow:hidden}
 audio{width:100%;margin-top:8px}
-@media (max-width:420px){
+
+.visual-card{padding:10px;margin-bottom:12px;background:linear-gradient(180deg,#fffaf0 0%,#fff 60%);border:1px solid #f6e05e}
+.visual-title{font-size:.92rem;font-weight:800;color:#744210;margin:0 0 8px;display:flex;align-items:center;gap:6px}
+.visual-frame{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#1a202c;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.visual-frame video{width:100%;height:100%;object-fit:cover;display:block;border:0}
+.visual-caption{margin:8px 0 0;padding:8px 10px;border-radius:10px;background:#fffff0;border:1px dashed #ecc94b;color:#744210;font-size:.9rem;line-height:1.45;text-align:center}
+.visual-caption .vc-line{font-weight:800;color:var(--primary-dark);margin-bottom:2px}
+.visual-caption .vc-mean{color:#975a16}
+.visual-nav{display:flex;justify-content:space-between;gap:8px;margin-top:8px}
+.tabs{grid-template-columns:repeat(6,1fr)}
+@media (max-width:520px){
   .tabs{grid-template-columns:repeat(3,1fr)}
 }
 </style>
@@ -141,6 +151,7 @@ audio{width:100%;margin-top:8px}
 
   <div class="tabs" role="tablist">
     <button type="button" class="tab active" data-mode="listen">聽範例</button>
+    <button type="button" class="tab" data-mode="visual">詩畫記憶</button>
     <button type="button" class="tab" data-mode="line">逐句練習</button>
     <button type="button" class="tab" data-mode="hide">遮字背誦</button>
     <button type="button" class="tab" data-mode="fill">填空默寫</button>
@@ -148,6 +159,24 @@ audio{width:100%;margin-top:8px}
   </div>
 
   <section class="mode active" id="mode-listen">
+
+    <div class="card visual-card">
+      <div class="visual-title">🎨 詩意畫面</div>
+      <div class="visual-frame">
+        <video id="listenVisualVid" playsinline muted autoplay loop poster="visuals/line1.jpg" preload="metadata">
+          <source src="visuals/line1.mp4" type="video/mp4"/>
+        </video>
+      </div>
+      <div class="visual-caption" id="listenVisualCap">
+        <div class="vc-line"></div>
+        <div class="vc-mean"></div>
+      </div>
+      <div class="visual-nav">
+        <button type="button" class="btn btn-gray" id="btnListenVisPrev">← 上一句</button>
+        <span class="badge" id="listenVisBadge">第 1／6 句</span>
+        <button type="button" class="btn btn-gray" id="btnListenVisNext">下一句 →</button>
+      </div>
+    </div>
     <div class="card">
       <div style="text-align:center;margin-bottom:8px">
         <div style="font-size:1.5rem;font-weight:800" id="poemTitle"></div>
@@ -168,7 +197,56 @@ audio{width:100%;margin-top:8px}
     <div class="card full-poem" id="listenLines"></div>
   </section>
 
+
+  <section class="mode" id="mode-visual">
+
+    <div class="card visual-card">
+      <div class="visual-title">🎨 詩意畫面</div>
+      <div class="visual-frame">
+        <video id="memVisualVid" playsinline muted autoplay loop poster="visuals/line1.jpg" preload="metadata">
+          <source src="visuals/line1.mp4" type="video/mp4"/>
+        </video>
+      </div>
+      <div class="visual-caption" id="memVisualCap">
+        <div class="vc-line"></div>
+        <div class="vc-mean"></div>
+      </div>
+      <div class="visual-nav">
+        <button type="button" class="btn btn-gray" id="btnMemPrev">← 上一句</button>
+        <span class="badge" id="memBadge">第 1／6 句</span>
+        <button type="button" class="btn btn-gray" id="btnMemNext">下一句 →</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="line-box" id="memLineBox" aria-live="polite" style="font-size:1.4rem"></div>
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" id="memPinyin" checked/> 顯示拼音</label>
+        <label class="toggle"><input type="checkbox" id="memSpeak" checked/> 換句時朗讀</label>
+        <label class="toggle"><input type="checkbox" id="memAuto"/> 自動下一句（約 8 秒）</label>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" id="btnMemListen">🔊 聽這句</button>
+        <button type="button" class="btn btn-orange" id="btnMemHideText">👁 隱藏詩句</button>
+        <button type="button" class="btn btn-green" id="btnMemRestart">⟲ 從頭看</button>
+      </div>
+      <div class="status" id="memStatus">看畫面、讀詩句，用圖像記住每一句。</div>
+    </div>
+  </section>
+
   <section class="mode" id="mode-line">
+
+    <div class="card visual-card">
+      <div class="visual-title">🎨 詩意畫面</div>
+      <div class="visual-frame">
+        <video id="lineVisualVid" playsinline muted autoplay loop poster="visuals/line1.jpg" preload="metadata">
+          <source src="visuals/line1.mp4" type="video/mp4"/>
+        </video>
+      </div>
+      <div class="visual-caption" id="lineVisualCap">
+        <div class="vc-line"></div>
+        <div class="vc-mean"></div>
+      </div>
+    </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span class="badge" id="lineBadge">第 1／6 句</span>
@@ -201,6 +279,19 @@ audio{width:100%;margin-top:8px}
   </section>
 
   <section class="mode" id="mode-hide">
+
+    <div class="card visual-card">
+      <div class="visual-title">🎨 詩意畫面</div>
+      <div class="visual-frame">
+        <video id="hideVisualVid" playsinline muted autoplay loop poster="visuals/line1.jpg" preload="metadata">
+          <source src="visuals/line1.mp4" type="video/mp4"/>
+        </video>
+      </div>
+      <div class="visual-caption" id="hideVisualCap">
+        <div class="vc-line"></div>
+        <div class="vc-mean"></div>
+      </div>
+    </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <span class="badge" id="hideBadge">第 1／6 句</span>
@@ -297,8 +388,64 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
   var fillTargets = [], fillAnswers = {};
   var progress = loadProgress();
   var bound = false;
+  var listenVisIdx = 0, memIdx = 0, memAutoId = null, memTextHidden = false;
+  var VISUAL_CAPTIONS = [
+    { mean: "明日一張接一張，永遠等唔完" },
+    { mean: "一味等明日，事情就耽誤" },
+    { mean: "春去秋來，人不知不覺老" },
+    { mean: "朝早水向東流，傍晚太陽西落" },
+    { mean: "一百年入面，可以有幾多個明日？" },
+    { mean: "請你聽我唱《明日歌》" }
+  ];
 
   function el(id) { return document.getElementById(id); }
+
+  function showVisual(idx, videoId, captionId, badgeId) {
+    if (!POEM || !POEM.lines.length) return;
+    var n = POEM.lines.length;
+    idx = Math.max(0, Math.min(n - 1, idx | 0));
+    var line = POEM.lines[idx];
+    var n1 = idx + 1;
+    var vid = el(videoId);
+    if (vid) {
+      var poster = "visuals/line" + n1 + ".jpg";
+      var srcMp4 = "visuals/line" + n1 + ".mp4";
+      var needSwap = vid.getAttribute("data-line") !== String(n1);
+      if (needSwap) {
+        vid.setAttribute("data-line", String(n1));
+        vid.poster = poster;
+        // Prefer source child if present
+        var source = vid.querySelector("source");
+        if (source) {
+          source.src = srcMp4;
+          vid.load();
+        } else {
+          vid.src = srcMp4;
+        }
+      }
+      try { vid.muted = true; vid.playsInline = true; vid.loop = true; vid.play().catch(function () {}); } catch (e) {}
+    }
+    var cap = el(captionId);
+    if (cap) {
+      var mean = (VISUAL_CAPTIONS[idx] && VISUAL_CAPTIONS[idx].mean) || "";
+      var lineEl = cap.querySelector(".vc-line");
+      var meanEl = cap.querySelector(".vc-mean");
+      if (lineEl) lineEl.textContent = line.text;
+      if (meanEl) meanEl.textContent = "「" + mean + "」";
+    }
+    if (badgeId && el(badgeId)) {
+      el(badgeId).textContent = "第 " + n1 + "／" + n + " 句";
+    }
+    return idx;
+  }
+
+  function pauseOtherVisuals(keepId) {
+    ["listenVisualVid", "lineVisualVid", "hideVisualVid", "memVisualVid"].forEach(function (id) {
+      if (id === keepId) return;
+      var v = el(id);
+      if (v) { try { v.pause(); } catch (e) {} }
+    });
+  }
 
   function loadProgress() {
     try {
@@ -406,12 +553,14 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
     document.querySelectorAll(".mode").forEach(function (m) {
       m.classList.toggle("active", m.id === "mode-" + name);
     });
+    if (name !== "visual" && memAutoId) { clearInterval(memAutoId); memAutoId = null; if (el("memAuto")) el("memAuto").checked = false; }
     markMode(name);
-    if (name === "listen") renderListen();
-    if (name === "line") renderLine();
-    if (name === "hide") renderHide();
-    if (name === "fill") renderFill();
-    if (name === "full") renderFull();
+    if (name === "listen") { pauseOtherVisuals("listenVisualVid"); renderListen(); }
+    if (name === "visual") { pauseOtherVisuals("memVisualVid"); renderVisualMem(); }
+    if (name === "line") { pauseOtherVisuals("lineVisualVid"); renderLine(); }
+    if (name === "hide") { pauseOtherVisuals("hideVisualVid"); renderHide(); }
+    if (name === "fill") { pauseOtherVisuals(null); renderFill(); }
+    if (name === "full") { pauseOtherVisuals(null); renderFull(); }
   }
 
   function renderListen() {
@@ -426,13 +575,22 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
       div.innerHTML = renderChars(line.chars, { showPinyin: showPy });
       box.appendChild(div);
     });
+    listenVisIdx = showVisual(listenVisIdx, "listenVisualVid", "listenVisualCap", "listenVisBadge");
+    el("btnListenVisPrev").disabled = listenVisIdx === 0;
+    el("btnListenVisNext").disabled = listenVisIdx === POEM.lines.length - 1;
     var list = el("listenLines");
-    list.innerHTML = "<strong>逐句點擊朗讀</strong>";
+    list.innerHTML = "<strong>逐句點擊：朗讀＋看畫面</strong>";
     POEM.lines.forEach(function (line, i) {
       var row = document.createElement("div");
       row.className = "row";
       row.textContent = (i + 1) + ". " + line.text;
-      row.addEventListener("click", function () { speak(line.text, el("listenSlow").checked); });
+      row.addEventListener("click", function () {
+        listenVisIdx = i;
+        showVisual(listenVisIdx, "listenVisualVid", "listenVisualCap", "listenVisBadge");
+        el("btnListenVisPrev").disabled = listenVisIdx === 0;
+        el("btnListenVisNext").disabled = listenVisIdx === POEM.lines.length - 1;
+        speak(line.text, el("listenSlow").checked);
+      });
       list.appendChild(row);
     });
   }
@@ -443,6 +601,7 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
     el("lineBox").innerHTML = renderChars(line.chars, { showPinyin: el("linePinyin").checked });
     el("btnLinePrev").disabled = lineIdx === 0;
     el("btnLineNext").disabled = lineIdx === POEM.lines.length - 1;
+    showVisual(lineIdx, "lineVisualVid", "lineVisualCap", null);
     var ul = el("lineTips");
     ul.innerHTML = "";
     (line.tips || []).forEach(function (t) {
@@ -480,6 +639,7 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
     });
     el("btnHidePrev").disabled = hideIdx === 0;
     el("btnHideNext").disabled = hideIdx === POEM.lines.length - 1;
+    showVisual(hideIdx, "hideVisualVid", "hideVisualCap", null);
   }
 
   function buildFillState(i) {
@@ -541,6 +701,30 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
     }
     el("btnFillPrev").disabled = fillIdx === 0;
     el("btnFillNext").disabled = fillIdx === POEM.lines.length - 1;
+  }
+
+
+  function renderVisualMem() {
+    if (!POEM) return;
+    memIdx = showVisual(memIdx, "memVisualVid", "memVisualCap", "memBadge");
+    el("btnMemPrev").disabled = memIdx === 0;
+    el("btnMemNext").disabled = memIdx === POEM.lines.length - 1;
+    var line = POEM.lines[memIdx];
+    var box = el("memLineBox");
+    if (memTextHidden) {
+      box.innerHTML = "<span style='color:var(--muted)'>（詩句已隱藏 — 試下靠畫面背）</span>";
+    } else {
+      box.innerHTML = renderChars(line.chars, { showPinyin: el("memPinyin").checked });
+    }
+    el("btnMemHideText").textContent = memTextHidden ? "👁 顯示詩句" : "👁 隱藏詩句";
+    el("memStatus").textContent = "第 " + (memIdx + 1) + " 句畫面：記住圖像，再對照詩句。";
+  }
+
+  function memGo(delta, speakIt) {
+    var n = POEM.lines.length;
+    memIdx = Math.max(0, Math.min(n - 1, memIdx + delta));
+    renderVisualMem();
+    if (speakIt && el("memSpeak").checked) speak(POEM.lines[memIdx].text, true);
   }
 
   function renderFull() {
@@ -742,6 +926,39 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
       });
     });
 
+
+    el("btnListenVisPrev").addEventListener("click", function () {
+      if (listenVisIdx > 0) { listenVisIdx--; renderListen(); }
+    });
+    el("btnListenVisNext").addEventListener("click", function () {
+      if (listenVisIdx < POEM.lines.length - 1) { listenVisIdx++; renderListen(); }
+    });
+
+    el("memPinyin").addEventListener("change", renderVisualMem);
+    el("btnMemPrev").addEventListener("click", function () { memGo(-1, true); });
+    el("btnMemNext").addEventListener("click", function () { memGo(1, true); });
+    el("btnMemListen").addEventListener("click", function () { speak(POEM.lines[memIdx].text, true); });
+    el("btnMemHideText").addEventListener("click", function () { memTextHidden = !memTextHidden; renderVisualMem(); });
+    el("btnMemRestart").addEventListener("click", function () {
+      memIdx = 0; memTextHidden = false; renderVisualMem();
+      if (el("memSpeak").checked) speak(POEM.lines[0].text, true);
+      el("memStatus").textContent = "已從頭開始看畫面。";
+    });
+    el("memAuto").addEventListener("change", function () {
+      if (memAutoId) { clearInterval(memAutoId); memAutoId = null; }
+      if (el("memAuto").checked) {
+        memAutoId = setInterval(function () {
+          if (memIdx >= POEM.lines.length - 1) {
+            clearInterval(memAutoId); memAutoId = null; el("memAuto").checked = false;
+            el("memStatus").textContent = "六句畫面已播完。";
+            return;
+          }
+          memGo(1, true);
+        }, 8000);
+        el("memStatus").textContent = "自動播放中：約每 8 秒換下一句。";
+      }
+    });
+
     if (window.speechSynthesis) {
       speechSynthesis.getVoices();
       speechSynthesis.onvoiceschanged = function () { speechSynthesis.getVoices(); };
@@ -754,11 +971,13 @@ window.ENCRYPTED_SENTENCES_B64 = "x2WwP29F5su+KAwQ1DVU4KVKqoOjpQe7Ckc0BAZuZi6/n5
   window.__applyUnlockedSentences = function (data) {
     POEM = data;
     if (POEM.assessment) el("subMeta").textContent = POEM.assessment;
-    lineIdx = hideIdx = fillIdx = 0;
+    lineIdx = hideIdx = fillIdx = listenVisIdx = memIdx = 0;
+    memTextHidden = false;
     fillTargets = [];
     bind();
     updateProgressUI();
     renderListen();
+    renderVisualMem();
     renderLine();
     renderHide();
     renderFill();
